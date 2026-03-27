@@ -12,9 +12,13 @@ The goal is to make the abstract mechanics of a large language model — tokeniz
 |---|---|---|
 | `Building with the Claude API.md` | Reference | Structured notes covering the full API request lifecycle and Claude's internal text generation process |
 | `Building with the Claude API.html` | Interactive | Self-contained browser app — step through the four generation stages with animations and controls |
-| `demo_claude_api.py` | Runnable demo | Minimal Python script that calls the real Claude API directly — a single-tier baseline |
-| `server.py` | Server layer | Flask server that holds the API Key and proxies requests to Claude |
-| `client.py` | Client layer | HTTP client with no API Key — communicates with `server.py` only |
+| `demo_claude_api.py` | Phase 1 demo | Minimal Python script that calls the Anthropic API directly — single-tier baseline |
+| `server.py` | Phase 1 server | Flask server that holds the API Key and proxies requests to Claude |
+| `client.py` | Phase 1 client | HTTP client with no API Key — communicates with `server.py` only |
+| `demo_api.py` | Phase 2 demo | Extended demo supporting both Anthropic and Google providers side-by-side |
+| `server3.py` | Phase 2 server | Multi-provider Flask server — routes requests to either Claude or Gemini |
+| `client3.py` | Phase 2 client | HTTP client that selects provider via `DEFAULT_PROVIDER` env var |
+| `list_models.py` | Utility | Lists all available Google Gemini models via the genai SDK |
 
 ---
 
@@ -38,7 +42,7 @@ Each stage pauses after its animation so you can review before advancing.
 ### Prerequisites
 
 ```bash
-pip install anthropic python-dotenv flask
+pip install anthropic google-genai python-dotenv flask
 ```
 
 ### API Key Setup
@@ -47,11 +51,17 @@ Create `env.local` in the project root:
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...
+GOOGLE_API_KEY=AIza...
+DEFAULT_PROVIDER=google
 ```
 
 > `env.local` is listed in `.gitignore` — never commit API keys.
 
 ---
+
+## Phase 1 — Single Provider (Anthropic only)
+
+The goal here is to understand the API request lifecycle and why a server layer is needed.
 
 ### Single-tier baseline: `demo_claude_api.py`
 
@@ -75,8 +85,6 @@ Stop Reason    : end_turn
 Input Tokens   : 16
 Output Tokens  : 35
 ```
-
----
 
 ### Two-tier architecture: `server.py` + `client.py`
 
@@ -115,6 +123,58 @@ Reply        : Tokenization is the process of breaking down text into smaller un
 Stop Reason  : end_turn
 Input Tokens : 16
 Output Tokens: 36
+```
+
+---
+
+## Phase 2 — Multi-Provider (Anthropic + Google)
+
+The goal here is to compare request/response formats across providers and build a server that can route to either.
+
+### Provider comparison: `demo_api.py`
+
+Calls either Claude or Gemini based on `DEFAULT_PROVIDER` in `env.local`.
+
+```bash
+python3 demo_api.py
+```
+
+| | Anthropic | Google (genai) |
+|---|---|---|
+| Client init | `anthropic.Anthropic(api_key=...)` | `genai.Client(api_key=...)` |
+| Request call | `client.messages.create(model, max_tokens, messages)` | `client.models.generate_content(model, contents)` |
+| Response text | `response.content[0].text` | `response.text` |
+| Token usage | `response.usage.input_tokens` | `response.usage_metadata.prompt_token_count` |
+
+### Multi-provider architecture: `server3.py` + `client3.py`
+
+Same two-tier pattern as Phase 1, extended to route requests to either provider.
+
+```
+Client → Your Server → Claude API
+         (holds keys) → Gemini API
+```
+
+**Terminal 1 — start the server:**
+
+```bash
+python3 server3.py
+```
+
+**Terminal 2 — run the client:**
+
+```bash
+python3 client3.py
+```
+
+The provider is resolved in this order: request param → `DEFAULT_PROVIDER` env var → `"google"`.
+
+### Discover available models: `list_models.py`
+
+Lists all Gemini model names accessible under your API Key.
+
+```bash
+python3 list_models.py
 ```
 
 ---
