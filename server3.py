@@ -1,0 +1,78 @@
+"""
+server3.py — The secure intermediary between client and Server.
+
+Only this process holds the API Key.
+The client never sees it.
+"""
+
+from flask import Flask, request, jsonify
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+import anthropic
+from google import genai
+
+# --- API Key lives HERE, on the server. ---
+load_dotenv(Path(__file__).parent / "env.local")
+
+# Initialize clients if keys exist
+anthropic_key = os.environ.get("ANTHROPIC_API_KEY")
+google_key = os.environ.get("GOOGLE_API_KEY")
+
+claude_client = anthropic.Anthropic(api_key=anthropic_key) if anthropic_key else None
+# New google-genai Client
+gemini_client = genai.Client(api_key=google_key) if google_key else None
+
+app = Flask(__name__)
+
+@app.route("/chat", methods=["POST"])
+def chat():
+    data = request.get_json()
+    user_input = data.get("message", "")
+    
+    # Priority: request param > env var (DEFAULT_PROVIDER) > hardcoded default ("google")
+    env_default = os.environ.get("DEFAULT_PROVIDER", "google")
+    provider = data.get("provider") or env_default
+
+    print(f"[Server] Received: '{user_input}' (Provider: {provider})")
+
+    if provider == "anthropic":
+        if not claude_client:
+            return jsonify({"error": "Anthropic API key not configured"}), 500
+        
+        response = claude_client.messages.create(
+            model="claude-haiku-4-5",
+            max_tokens=256,
+            messages=[{"role": "user", "content": user_input}]
+        )
+        reply = {
+            "reply":         response.content[0].text,
+            "provider":      "anthropic",
+            "input_tokens":  response.usage.input_tokens,
+            "output_tokens": response.usage.output_tokens,
+        }
+    
+    elif provider == "google":
+        if not gemini_client:
+            return jsonify({"error": "Google API key not configured"}), 500
+        
+        # New call pattern for google-genai
+        response = gemini_client.models.generate_content(
+            model="gemini-3-flash-preview",
+            contents=user_input
+        )
+        reply = {
+            "reply":         response.text,
+            "provider":      "google",
+            "input_tokens":  response.usage_metadata.prompt_token_count,
+            "output_tokens": response.usage_metadata.candidates_token_count,
+        }
+    else:
+        return jsonify({"error": "Unknown provider"}), 400
+
+    print(f"[Server] Returning response from {provider}")
+    return jsonify(reply)
+
+if __name__ == "__main__":
+    print("Server running at http://localhost:5000")
+    app.run(port=5000)
