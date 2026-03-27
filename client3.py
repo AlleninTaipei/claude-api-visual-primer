@@ -17,7 +17,7 @@ SERVER_URL = "http://localhost:5000/chat"
 USER_INPUT = "In one sentence, what is tokenization?"
 
 # Read the default provider from env; fall back to "google" if not set
-PROVIDER = os.environ.get("DEFAULT_PROVIDER", "google") 
+PROVIDER = os.environ.get("DEFAULT_PROVIDER", "google").strip().lower()
 
 print(f"=== Client (Provider: {PROVIDER}) ===")
 print(f"Sending to : {SERVER_URL}")

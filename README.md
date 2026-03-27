@@ -15,10 +15,11 @@ The goal is to make the abstract mechanics of a large language model — tokeniz
 | `demo_claude_api.py` | Phase 1 demo | Minimal Python script that calls the Anthropic API directly — single-tier baseline |
 | `server.py` | Phase 1 server | Flask server that holds the API Key and proxies requests to Claude |
 | `client.py` | Phase 1 client | HTTP client with no API Key — communicates with `server.py` only |
-| `demo_api.py` | Phase 2 demo | Extended demo supporting both Anthropic and Google providers side-by-side |
-| `server3.py` | Phase 2 server | Multi-provider Flask server — routes requests to either Claude or Gemini |
+| `demo_api.py` | Phase 2 demo | Extended demo supporting Anthropic, Google, and OpenAI providers side-by-side |
+| `server3.py` | Phase 2 server | Multi-provider Flask server — routes requests to Claude, Gemini, or GPT |
 | `client3.py` | Phase 2 client | HTTP client that selects provider via `DEFAULT_PROVIDER` env var |
 | `list_models.py` | Utility | Lists all available Google Gemini models via the genai SDK |
+| `requirements.txt` | Config | Pinned dependency list for all Phase 1 and Phase 2 scripts |
 
 ---
 
@@ -42,7 +43,7 @@ Each stage pauses after its animation so you can review before advancing.
 ### Prerequisites
 
 ```bash
-pip install anthropic google-genai python-dotenv flask
+pip install -r requirements.txt
 ```
 
 ### API Key Setup
@@ -52,7 +53,13 @@ Create `env.local` in the project root:
 ```
 ANTHROPIC_API_KEY=sk-ant-...
 GOOGLE_API_KEY=AIza...
+OPENAI_API_KEY=sk-...
 DEFAULT_PROVIDER=google
+
+# Optional — override model names
+# ANTHROPIC_MODEL=claude-haiku-4-5
+# GOOGLE_MODEL=gemini-3-flash-preview
+# OPENAI_MODEL=gpt-4o-mini
 ```
 
 > `env.local` is listed in `.gitignore` — never commit API keys.
@@ -127,32 +134,33 @@ Output Tokens: 36
 
 ---
 
-## Phase 2 — Multi-Provider (Anthropic + Google)
+## Phase 2 — Multi-Provider (Anthropic + Google + OpenAI)
 
-The goal here is to compare request/response formats across providers and build a server that can route to either.
+The goal here is to compare request/response formats across providers and build a server that can route to any of them.
 
 ### Provider comparison: `demo_api.py`
 
-Calls either Claude or Gemini based on `DEFAULT_PROVIDER` in `env.local`.
+Calls Claude, Gemini, or GPT based on `DEFAULT_PROVIDER` in `env.local`.
 
 ```bash
 python3 demo_api.py
 ```
 
-| | Anthropic | Google (genai) |
-|---|---|---|
-| Client init | `anthropic.Anthropic(api_key=...)` | `genai.Client(api_key=...)` |
-| Request call | `client.messages.create(model, max_tokens, messages)` | `client.models.generate_content(model, contents)` |
-| Response text | `response.content[0].text` | `response.text` |
-| Token usage | `response.usage.input_tokens` | `response.usage_metadata.prompt_token_count` |
+| | Anthropic | Google (genai) | OpenAI |
+|---|---|---|---|
+| Client init | `anthropic.Anthropic(api_key=...)` | `genai.Client(api_key=...)` | `OpenAI(api_key=...)` |
+| Request call | `client.messages.create(model, max_tokens, messages)` | `client.models.generate_content(model, contents)` | `client.chat.completions.create(model, max_tokens, messages)` |
+| Response text | `response.content[0].text` | `response.text` | `response.choices[0].message.content` |
+| Token usage | `response.usage.input_tokens` | `response.usage_metadata.prompt_token_count` | `response.usage.prompt_tokens` |
 
 ### Multi-provider architecture: `server3.py` + `client3.py`
 
-Same two-tier pattern as Phase 1, extended to route requests to either provider.
+Same two-tier pattern as Phase 1, extended to route requests to any provider.
 
 ```
 Client → Your Server → Claude API
          (holds keys) → Gemini API
+                      → OpenAI API
 ```
 
 **Terminal 1 — start the server:**
@@ -167,7 +175,7 @@ python3 server3.py
 python3 client3.py
 ```
 
-The provider is resolved in this order: request param → `DEFAULT_PROVIDER` env var → `"google"`.
+The provider is resolved in this order: request param → `DEFAULT_PROVIDER` env var → `"google"`. Valid values: `anthropic`, `google`, `openai`.
 
 ### Discover available models: `list_models.py`
 
