@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Building with the Claude API</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      line-height: 1.7;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 100%);
+      border-bottom: 1px solid #2d3748;
+      padding: 48px 24px 40px;
+      text-align: center;
+    }
+    header h1 { font-size: 2.2rem; font-weight: 700; color: #f7fafc; }
+    header p  { margin-top: 10px; color: #a0aec0; font-size: 1.05rem; max-width: 600px; margin-inline: auto; }
+
+    /* ── Sections ── */
+    main { max-width: 860px; margin: 0 auto; padding: 48px 24px 80px; }
+
+    section { margin-bottom: 52px; }
+    h2 {
+      font-size: 1.4rem; font-weight: 600; color: #90cdf4;
+      border-left: 4px solid #4299e1; padding-left: 14px;
+      margin-bottom: 20px;
+    }
+    h3 { font-size: 1.05rem; font-weight: 600; color: #e2e8f0; margin: 20px 0 8px; }
+    p  { color: #a0aec0; margin-bottom: 12px; }
+
+    /* ── Request Flow ── */
+    .flow {
+      display: flex; align-items: center; flex-wrap: wrap;
+      gap: 0; margin-top: 24px;
+    }
+    .flow-step {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 10px;
+      padding: 14px 18px; font-size: 0.82rem; text-align: center;
+      min-width: 120px; flex: 1;
+    }
+    .flow-step .icon { font-size: 1.5rem; display: block; margin-bottom: 6px; }
+    .flow-step .label { font-weight: 600; color: #e2e8f0; }
+    .flow-step .sub   { color: #718096; font-size: 0.75rem; margin-top: 3px; }
+    .flow-arrow {
+      color: #4299e1; font-size: 1.3rem; padding: 0 4px; flex-shrink: 0;
+    }
+
+    /* ── Server warning ── */
+    .warning-box {
+      background: #1a202c; border: 1px solid #744210; border-radius: 10px;
+      padding: 18px 22px; margin-top: 16px;
+    }
+    .warning-box .tag {
+      display: inline-block; background: #744210; color: #fbd38d;
+      font-size: 0.72rem; font-weight: 700; padding: 2px 8px;
+      border-radius: 4px; margin-bottom: 10px; letter-spacing: 0.05em;
+    }
+    .warning-box ul { list-style: none; }
+    .warning-box ul li { color: #a0aec0; font-size: 0.9rem; padding: 3px 0; }
+    .warning-box ul li::before { content: "⚠ "; color: #f6ad55; }
+
+    /* ── API Fields ── */
+    .api-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+    .field {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .field .name  { font-family: monospace; font-size: 0.85rem; color: #68d391; font-weight: 600; }
+    .field .desc  { font-size: 0.82rem; color: #718096; margin-top: 4px; }
+
+    /* ══════════════════════════════════
+       INSIDE CLAUDE DEMO
+    ══════════════════════════════════ */
+    #demo-section {
+      background: #0d1117; border: 1px solid #2d3748; border-radius: 16px;
+      padding: 32px; margin-top: 0;
+    }
+    #demo-section h2 { margin-bottom: 8px; }
+    .demo-subtitle { color: #718096; font-size: 0.9rem; margin-bottom: 24px; }
+
+    /* Stage tabs */
+    .stage-tabs {
+      display: flex; gap: 6px; margin-bottom: 28px; flex-wrap: wrap;
+    }
+    .stage-tab {
+      padding: 7px 16px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; border: 1px solid #2d3748; background: #1a202c; color: #718096;
+      transition: all 0.2s;
+    }
+    .stage-tab.active   { background: #2b6cb0; border-color: #4299e1; color: #fff; }
+    .stage-tab.done     { background: #276749; border-color: #48bb78; color: #c6f6d5; }
+
+    /* Demo panels */
+    .demo-panel { display: none; }
+    .demo-panel.visible { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(6px) } to { opacity:1; transform:none } }
+
+    .demo-input {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 8px;
+      padding: 12px 16px; font-size: 0.9rem; color: #e2e8f0;
+      margin-bottom: 20px; font-family: monospace;
+    }
+    .demo-input span { color: #68d391; }
+
+    /* Tokens */
+    .tokens-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .token {
+      background: #2d3748; border: 1px solid #4a5568; border-radius: 6px;
+      padding: 6px 12px; font-family: monospace; font-size: 0.85rem; color: #e2e8f0;
+      opacity: 0; transform: translateY(10px);
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .token.show { opacity: 1; transform: none; }
+    .token-id { font-size: 0.65rem; color: #4299e1; display: block; text-align: center; margin-top: 2px; }
+    .demo-note { color: #718096; font-size: 0.82rem; margin-top: 8px; }
+
+    /* Embeddings */
+    .embed-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+    .embed-card {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 8px; padding: 12px;
+      opacity: 0; transform: scale(0.95);
+      transition: opacity 0.4s, transform 0.4s;
+    }
+    .embed-card.show { opacity: 1; transform: none; }
+    .embed-word { font-family: monospace; font-size: 0.85rem; color: #f6ad55; font-weight: 600; margin-bottom: 8px; }
+    .embed-nums { display: flex; flex-wrap: wrap; gap: 3px; }
+    .embed-num  { font-family: monospace; font-size: 0.7rem; color: #4299e1; background: #2d3748; padding: 2px 5px; border-radius: 3px; }
+    .embed-dots { font-size: 0.7rem; color: #4a5568; margin-top: 4px; }
+
+    /* Contextualization */
+    .context-container { position: relative; }
+    .context-tokens { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+    .ctx-token {
+      background: #1a202c; border: 2px solid #2d3748; border-radius: 8px;
+      padding: 8px 14px; font-family: monospace; font-size: 0.85rem; color: #e2e8f0;
+      transition: all 0.4s; cursor: default; position: relative;
+    }
+    .ctx-token.highlight { border-color: #f6ad55; background: #2d2412; color: #fbd38d; }
+    .ctx-token.active    { border-color: #4299e1; background: #1a2a3a; transform: scale(1.08); }
+    .ctx-token .meaning  {
+      display: none; position: absolute; bottom: calc(100% + 6px); left: 50%;
+      transform: translateX(-50%); background: #2d3748; border: 1px solid #4a5568;
+      border-radius: 6px; padding: 5px 10px; font-size: 0.72rem; color: #a0aec0;
+      white-space: nowrap; z-index: 10;
+    }
+    .ctx-token.active .meaning { display: block; }
+    .ctx-description { color: #a0aec0; font-size: 0.88rem; min-height: 36px; transition: all 0.3s; }
+
+    /* Generation */
+    .gen-output {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 8px;
+      padding: 14px 16px; font-family: monospace; font-size: 0.95rem;
+      color: #e2e8f0; min-height: 54px; margin-bottom: 16px; line-height: 1.8;
+    }
+    .gen-word-new { color: #68d391; animation: wordPop 0.4s ease; }
+    @keyframes wordPop {
+      0%   { color: #68d391; background: #1c3a28; border-radius: 3px; }
+      100% { color: #e2e8f0; background: transparent; }
+    }
+    .prob-title { font-size: 0.8rem; color: #718096; margin-bottom: 8px; }
+    .prob-bars  { display: flex; flex-direction: column; gap: 5px; }
+    .prob-row   { display: flex; align-items: center; gap: 10px; }
+    .prob-word  { font-family: monospace; font-size: 0.8rem; color: #a0aec0; width: 110px; text-align: right; }
+    .prob-bar-bg { flex: 1; background: #2d3748; border-radius: 3px; height: 14px; overflow: hidden; }
+    .prob-bar-fill {
+      height: 100%; border-radius: 3px; background: #4299e1;
+      width: 0; transition: width 0.5s ease;
+    }
+    .prob-bar-fill.selected { background: #68d391; }
+    .prob-pct { font-size: 0.75rem; color: #718096; width: 36px; }
+    .gen-stop-indicator {
+      display: none; background: #1a202c; border: 1px solid #276749;
+      border-radius: 8px; padding: 12px 16px; margin-top: 12px;
+      font-size: 0.85rem; color: #68d391;
+    }
+    .gen-stop-indicator.show { display: block; animation: fadeIn 0.4s; }
+
+    /* Controls */
+    .demo-controls { display: flex; gap: 10px; margin-top: 24px; flex-wrap: wrap; align-items: center; }
+    .btn {
+      padding: 9px 20px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
+      cursor: pointer; border: none; transition: all 0.2s;
+    }
+    .btn-primary { background: #2b6cb0; color: #fff; }
+    .btn-primary:hover { background: #3182ce; }
+    .btn-primary:disabled { background: #2d3748; color: #4a5568; cursor: default; }
+    .btn-ghost { background: transparent; color: #718096; border: 1px solid #2d3748; }
+    .btn-ghost:hover { color: #e2e8f0; border-color: #4a5568; }
+    .step-indicator { color: #718096; font-size: 0.82rem; margin-left: auto; }
+
+    /* Response section */
+    .response-box {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 10px;
+      padding: 20px; margin-top: 16px;
+    }
+    .response-field { display: flex; gap: 16px; padding: 8px 0; border-bottom: 1px solid #2d3748; }
+    .response-field:last-child { border-bottom: none; }
+    .rf-key   { font-family: monospace; font-size: 0.82rem; color: #f6ad55; width: 120px; flex-shrink: 0; }
+    .rf-val   { font-size: 0.85rem; color: #a0aec0; }
+    .rf-val.text { color: #e2e8f0; }
+
+    /* Takeaway */
+    .takeaway {
+      background: linear-gradient(135deg, #1a2a1a, #1a202c);
+      border: 1px solid #276749; border-radius: 10px;
+      padding: 20px 24px; margin-top: 16px;
+    }
+    .takeaway p { color: #c6f6d5; font-size: 0.9rem; margin: 0; }
+
+    /* ── Code blocks ── */
+    .code-block {
+      background: #0d1117; border: 1px solid #2d3748; border-radius: 8px;
+      padding: 16px 18px; font-family: monospace; font-size: 0.82rem;
+      color: #e2e8f0; overflow-x: auto; margin-top: 14px; line-height: 1.7;
+      white-space: pre;
+    }
+    .kw  { color: #9f7aea; }
+    .fn  { color: #68d391; }
+    .str { color: #f6ad55; }
+    .cmt { color: #4a5568; font-style: italic; }
+    .key { color: #63b3ed; }
+
+    /* ── Temperature cards ── */
+    .temp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+    .temp-card { background: #1a202c; border: 1px solid #2d3748; border-radius: 8px; padding: 14px 16px; }
+    .temp-card .range { font-family: monospace; font-size: 0.9rem; font-weight: 700; margin-bottom: 6px; }
+    .temp-card .range.low  { color: #63b3ed; }
+    .temp-card .range.mid  { color: #68d391; }
+    .temp-card .range.high { color: #f6ad55; }
+    .temp-card .label { font-size: 0.78rem; font-weight: 600; color: #a0aec0; margin-bottom: 8px; }
+    .temp-card ul { list-style: none; }
+    .temp-card ul li { font-size: 0.8rem; color: #718096; padding: 2px 0; }
+    .temp-card ul li::before { content: "• "; }
+
+    /* ── Streaming events ── */
+    .event-list { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+    .event-item {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 6px;
+      padding: 9px 14px; display: flex; gap: 14px; align-items: baseline;
+    }
+    .event-name { font-family: monospace; font-size: 0.82rem; color: #68d391; min-width: 180px; flex-shrink: 0; }
+    .event-desc { font-size: 0.82rem; color: #718096; }
+
+    /* ── Info box (system prompt, prefill, etc.) ── */
+    .info-box {
+      background: #1a202c; border: 1px solid #2a4a6a; border-radius: 10px;
+      padding: 16px 20px; margin-top: 14px;
+    }
+    .info-box .tag {
+      display: inline-block; background: #2a4a6a; color: #90cdf4;
+      font-size: 0.72rem; font-weight: 700; padding: 2px 8px;
+      border-radius: 4px; margin-bottom: 10px; letter-spacing: 0.05em;
+    }
+    .info-box p { color: #a0aec0; font-size: 0.88rem; margin: 0; }
+
+    @media (max-width: 600px) {
+      .api-fields { grid-template-columns: 1fr; }
+      .flow-arrow { display: none; }
+      .flow { gap: 8px; }
+      .flow-step { min-width: 0; }
+      .temp-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Building with the Claude API</h1>
+  <p>Understanding the complete request lifecycle when building applications with Claude.</p>
+</header>
+
+<main>
+
+  <!-- ── 1. Complete Request Flow ── -->
+  <section>
+    <h2>The Complete Request Flow</h2>
+    <p>The journey from user input to AI response involves five distinct steps. Each plays a crucial role in delivering the response users expect.</p>
+    <div class="flow">
+      <div class="flow-step"><span class="icon">👤</span><div class="label">User Input</div><div class="sub">Client</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><span class="icon">🖥</span><div class="label">Your Server</div><div class="sub">Secure intermediary</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><span class="icon">🤖</span><div class="label">Claude API</div><div class="sub">Anthropic</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><span class="icon">🖥</span><div class="label">Your Server</div><div class="sub">Forward response</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><span class="icon">👤</span><div class="label">User Sees</div><div class="sub">Chat UI</div></div>
+    </div>
+  </section>
+
+  <!-- ── 2. Why a Server ── -->
+  <section>
+    <h2>Why You Need a Server</h2>
+    <p>Never make API requests directly from client-side code.</p>
+    <div class="warning-box">
+      <div class="tag">SECURITY</div>
+      <ul>
+        <li>API requests require secret credentials that must stay secure</li>
+        <li>Exposing credentials in client code makes them visible to anyone</li>
+        <li>Your server acts as a secure intermediary between your app and AI</li>
+        <li>Always route requests through your own server that you control</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── 3. API Request Fields ── -->
+  <section>
+    <h2>Making the API Request</h2>
+    <p>Anthropic provides official SDKs for Python, TypeScript, Go, and Ruby. Every request must include these key fields:</p>
+    <div class="api-fields">
+      <div class="field"><div class="name">API Key</div><div class="desc">Identifies your request to Anthropic — keep it server-side only</div></div>
+      <div class="field"><div class="name">model</div><div class="desc">Name of the specific Claude model to use</div></div>
+      <div class="field"><div class="name">messages</div><div class="desc">List containing the user's input text in role/content format</div></div>
+      <div class="field"><div class="name">max_tokens</div><div class="desc">Limits how many tokens the model can generate</div></div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════
+       INSIDE CLAUDE — INTERACTIVE DEMO
+  ══════════════════════════════════ -->
+  <section id="demo-section">
+    <h2>Inside Claude: Text Generation Process</h2>
+    <div class="demo-subtitle">Step through the four internal stages Claude performs for every request.</div>
+
+    <!-- Stage tabs -->
+    <div class="stage-tabs">
+      <div class="stage-tab active" id="tab-1">① Tokenization</div>
+      <div class="stage-tab"        id="tab-2">② Embedding</div>
+      <div class="stage-tab"        id="tab-3">③ Contextualization</div>
+      <div class="stage-tab"        id="tab-4">④ Generation</div>
+    </div>
+
+    <!-- Panel 1: Tokenization -->
+    <div class="demo-panel visible" id="panel-1">
+      <div class="demo-input">Input: <span>"What is quantum computing?"</span></div>
+      <h3>Breaking input into tokens</h3>
+      <p style="margin-bottom:14px">Claude splits the text into smaller chunks. Each word (or sub-word) becomes one token with a unique ID.</p>
+      <div class="tokens-row" id="tokens-row"></div>
+      <div class="demo-note" id="token-count-note"></div>
+    </div>
+
+    <!-- Panel 2: Embedding -->
+    <div class="demo-panel" id="panel-2">
+      <h3>Converting tokens → number vectors</h3>
+      <p style="margin-bottom:14px">Each token is mapped to a high-dimensional vector (embedding) that encodes all possible meanings of that word.</p>
+      <div class="embed-grid" id="embed-grid"></div>
+    </div>
+
+    <!-- Panel 3: Contextualization -->
+    <div class="demo-panel" id="panel-3">
+      <h3>Using context to resolve meaning</h3>
+      <p style="margin-bottom:14px">Words have multiple meanings. Click each token to see how surrounding context pins down the right interpretation.</p>
+      <div class="context-tokens" id="ctx-tokens"></div>
+      <div class="ctx-description" id="ctx-desc">← Click a token to see how context shapes its meaning.</div>
+    </div>
+
+    <!-- Panel 4: Generation -->
+    <div class="demo-panel" id="panel-4">
+      <h3>Generating the response word-by-word</h3>
+      <p style="margin-bottom:14px">Claude predicts the probability of each next word. It picks from the high-probability candidates (not always the top one) to keep responses natural.</p>
+      <div class="gen-output" id="gen-output"></div>
+      <div class="prob-title">Next-word probabilities:</div>
+      <div class="prob-bars" id="prob-bars"></div>
+      <div class="gen-stop-indicator" id="gen-stop">
+        ✅ &lt;end-of-sequence&gt; token generated — generation complete. Stop reason: <strong>end_turn</strong>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="demo-controls">
+      <button class="btn btn-ghost" id="btn-prev" onclick="prevStage()" disabled>← Back</button>
+      <button class="btn btn-primary" id="btn-next" onclick="nextStage()">Run Stage →</button>
+      <button class="btn btn-ghost" onclick="resetDemo()">↺ Reset</button>
+      <span class="step-indicator" id="step-indicator">Stage 1 of 4</span>
+    </div>
+  </section>
+
+  <!-- ── 4. The Response ── -->
+  <section>
+    <h2>The Response</h2>
+    <p>Once generation completes, Claude returns structured metadata alongside the text:</p>
+    <div class="response-box">
+      <div class="response-field">
+        <div class="rf-key">message</div>
+        <div class="rf-val text">"Quantum computing is a type of computation that uses quantum-mechanical phenomena…"</div>
+      </div>
+      <div class="response-field">
+        <div class="rf-key">stop_reason</div>
+        <div class="rf-val"><code style="color:#68d391">end_turn</code> — natural conclusion reached</div>
+      </div>
+      <div class="response-field">
+        <div class="rf-key">usage.input</div>
+        <div class="rf-val">5 tokens (the question)</div>
+      </div>
+      <div class="response-field">
+        <div class="rf-key">usage.output</div>
+        <div class="rf-val">38 tokens (the answer)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 5. Key Takeaway ── -->
+  <section>
+    <h2>The Complete Picture</h2>
+    <p>This entire process — from user input through tokenization, embedding, contextualization, generation, and back to the user — happens in seconds.</p>
+    <div class="takeaway">
+      <p>
+        <strong>Key takeaway:</strong> always use a server as an intermediary, understand that text generation is an <em>iterative</em> process, and pay attention to the response metadata to monitor usage and understand model behaviour.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── 6. Multi-turn Conversations ── -->
+  <section>
+    <h2>Multi-turn Conversations</h2>
+    <p>Claude is stateless — it has no memory of previous requests. To build a conversation, your code must maintain a running message list and send the <em>complete history</em> on every request.</p>
+    <pre class="code-block"><span class="cmt"># Keep a running list of all messages</span>
+messages = []
+
+<span class="kw">while</span> <span class="kw">True</span>:
+    user_input = <span class="fn">input</span>(<span class="str">"&gt; "</span>)
+    messages.<span class="fn">append</span>({<span class="key">"role"</span>: <span class="str">"user"</span>,      <span class="key">"content"</span>: user_input})
+
+    response = client.messages.<span class="fn">create</span>(
+        <span class="key">model</span>=model, <span class="key">max_tokens</span>=<span class="str">1000</span>, <span class="key">messages</span>=messages
+    )
+    reply = response.content[<span class="str">0</span>].text
+    messages.<span class="fn">append</span>({<span class="key">"role"</span>: <span class="str">"assistant"</span>, <span class="key">"content"</span>: reply})
+    <span class="fn">print</span>(reply)</pre>
+
+    <h3>System Prompts</h3>
+    <p>A system prompt lets you define Claude's persona, tone, and constraints before any user message. It travels as a top-level <code style="color:#68d391">system</code> parameter, separate from the messages list.</p>
+    <div class="info-box">
+      <div class="tag">SYSTEM PROMPT</div>
+      <p>Use system prompts to set the role, output format, language, or any standing instructions that should apply to every turn in the conversation.</p>
+    </div>
+    <pre class="code-block">response = client.messages.<span class="fn">create</span>(
+    <span class="key">model</span>=model,
+    <span class="key">max_tokens</span>=<span class="str">1000</span>,
+    <span class="key">system</span>=<span class="str">"You are a concise technical assistant. Reply in plain text only."</span>,
+    <span class="key">messages</span>=messages
+)</pre>
+  </section>
+
+  <!-- ── 7. Temperature ── -->
+  <section>
+    <h2>Temperature</h2>
+    <p>Temperature is a decimal between <strong>0.0</strong> and <strong>1.0</strong> that controls how deterministic or creative Claude's word selection is. Low values favour the highest-probability token; high values introduce more randomness.</p>
+    <div class="temp-grid">
+      <div class="temp-card">
+        <div class="range low">0.0 – 0.3</div>
+        <div class="label">Precise / Factual</div>
+        <ul>
+          <li>Factual Q&amp;A</li>
+          <li>Coding assistance</li>
+          <li>Data extraction</li>
+          <li>Content moderation</li>
+        </ul>
+      </div>
+      <div class="temp-card">
+        <div class="range mid">0.4 – 0.7</div>
+        <div class="label">Balanced</div>
+        <ul>
+          <li>Summarisation</li>
+          <li>Educational content</li>
+          <li>Problem-solving</li>
+          <li>Constrained creative writing</li>
+        </ul>
+      </div>
+      <div class="temp-card">
+        <div class="range high">0.8 – 1.0</div>
+        <div class="label">Creative / Varied</div>
+        <ul>
+          <li>Brainstorming</li>
+          <li>Open-ended creative writing</li>
+          <li>Marketing copy</li>
+          <li>Joke generation</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 8. Response Streaming ── -->
+  <section>
+    <h2>Response Streaming</h2>
+    <p>By default, Claude sends the entire response at once — causing a noticeable wait. With streaming, Claude sends text chunks as they are generated, so users see output appear word by word.</p>
+    <div class="event-list">
+      <div class="event-item"><div class="event-name">MessageStart</div><div class="event-desc">A new message has begun</div></div>
+      <div class="event-item"><div class="event-name">ContentBlockStart</div><div class="event-desc">A new content block (text, tool use, etc.) is starting</div></div>
+      <div class="event-item"><div class="event-name">ContentBlockDelta</div><div class="event-desc">A chunk of generated text — forward this to the client immediately</div></div>
+      <div class="event-item"><div class="event-name">ContentBlockStop</div><div class="event-desc">The current content block is complete</div></div>
+      <div class="event-item"><div class="event-name">MessageDelta</div><div class="event-desc">Final metadata for the message (stop reason, usage)</div></div>
+      <div class="event-item"><div class="event-name">MessageStop</div><div class="event-desc">End of the stream</div></div>
+    </div>
+    <pre class="code-block"><span class="kw">with</span> client.messages.<span class="fn">stream</span>(
+    <span class="key">model</span>=model, <span class="key">max_tokens</span>=<span class="str">1000</span>, <span class="key">messages</span>=messages
+) <span class="kw">as</span> stream:
+    <span class="kw">for</span> text <span class="kw">in</span> stream.text_stream:
+        <span class="fn">print</span>(text, <span class="key">end</span>=<span class="str">""</span>)   <span class="cmt"># forward to client in production</span>
+
+    final = stream.<span class="fn">get_final_message</span>()  <span class="cmt"># full message for storage</span></pre>
+    <p style="margin-top:10px">In production, forward <code style="color:#68d391">ContentBlockDelta</code> chunks to your client via <strong>WebSockets</strong> or <strong>Server-Sent Events (SSE)</strong>.</p>
+  </section>
+
+  <!-- ── 9. Prefilled Assistant Messages ── -->
+  <section>
+    <h2>Prefilled Assistant Messages</h2>
+    <p>You can seed the beginning of Claude's response by appending an <code style="color:#68d391">assistant</code> message to the conversation <em>before</em> calling the API. Claude continues from that starting point.</p>
+    <pre class="code-block">messages = []
+messages.<span class="fn">append</span>({<span class="key">"role"</span>: <span class="str">"user"</span>,      <span class="key">"content"</span>: <span class="str">"Is tea or coffee better at breakfast?"</span>})
+messages.<span class="fn">append</span>({<span class="key">"role"</span>: <span class="str">"assistant"</span>, <span class="key">"content"</span>: <span class="str">"Coffee is better because"</span>})
+
+response = client.messages.<span class="fn">create</span>(<span class="key">model</span>=model, <span class="key">max_tokens</span>=<span class="str">300</span>, <span class="key">messages</span>=messages)</pre>
+    <div class="api-fields" style="margin-top:14px">
+      <div class="field"><div class="name">"Coffee is better because"</div><div class="desc">Steers Claude toward favouring coffee</div></div>
+      <div class="field"><div class="name">"Tea is better because"</div><div class="desc">Steers Claude toward favouring tea</div></div>
+      <div class="field"><div class="name">"Neither is very good because"</div><div class="desc">Forces a contrarian stance</div></div>
+      <div class="field"><div class="name">"```json"</div><div class="desc">Forces JSON output (see Structured Data)</div></div>
+    </div>
+  </section>
+
+  <!-- ── 10. Stop Sequences ── -->
+  <section>
+    <h2>Stop Sequences</h2>
+    <p>A stop sequence forces Claude to halt generation the moment it produces a specific string. The sequence itself is <em>not</em> included in the output.</p>
+    <pre class="code-block"><span class="cmt"># Stop before "5" is reached — output: "1, 2, 3, 4"</span>
+response = client.messages.<span class="fn">create</span>(
+    <span class="key">model</span>=model,
+    <span class="key">max_tokens</span>=<span class="str">100</span>,
+    <span class="key">messages</span>=[{<span class="key">"role"</span>: <span class="str">"user"</span>, <span class="key">"content"</span>: <span class="str">"Count from 1 to 10"</span>}],
+    <span class="key">stop_sequences</span>=[<span class="str">", 5"</span>]
+)</pre>
+    <div class="info-box" style="border-color:#276749">
+      <div class="tag" style="background:#276749;color:#c6f6d5">TIP</div>
+      <p>Stop sequences are especially useful when combined with prefilled assistant messages to extract structured output in a predictable format.</p>
+    </div>
+  </section>
+
+  <!-- ── 11. Structured Data ── -->
+  <section>
+    <h2>Structured Data</h2>
+    <p>Combining a prefilled assistant message with a stop sequence lets you extract clean, parseable output — no post-processing required.</p>
+    <pre class="code-block"><span class="kw">import</span> json
+
+messages = []
+messages.<span class="fn">append</span>({<span class="key">"role"</span>: <span class="str">"user"</span>,      <span class="key">"content"</span>: <span class="str">"Generate a short EventBridge rule as JSON"</span>})
+messages.<span class="fn">append</span>({<span class="key">"role"</span>: <span class="str">"assistant"</span>, <span class="key">"content"</span>: <span class="str">"```json"</span>})   <span class="cmt"># prefill opens code fence</span>
+
+response = client.messages.<span class="fn">create</span>(
+    <span class="key">model</span>=model, <span class="key">max_tokens</span>=<span class="str">500</span>,
+    <span class="key">messages</span>=messages,
+    <span class="key">stop_sequences</span>=[<span class="str">"```"</span>]              <span class="cmt"># stop when closing fence appears</span>
+)
+
+raw  = response.content[<span class="str">0</span>].text.<span class="fn">strip</span>()
+data = json.<span class="fn">loads</span>(raw)                   <span class="cmt"># clean JSON, ready to use</span></pre>
+    <p style="margin-top:10px">The prefill opens the code fence; the stop sequence closes it. Everything in between is guaranteed to be the JSON body.</p>
+  </section>
+
+</main>
+
+<script>
+/* ═══════════════════════════════════
+   DEMO DATA
+═══════════════════════════════════ */
+const INPUT_WORDS = ["What", "is", "quantum", "computing", "?"];
+
+const TOKEN_DATA = [
+  { word: "What",      id: "2061" },
+  { word: "is",        id: "318"  },
+  { word: "quantum",   id: "7247" },
+  { word: "computing", id: "9076" },
+  { word: "?",         id: "30"   },
+];
+
+const EMBED_DATA = [
+  { word: "What",      nums: [0.21, -0.54, 0.87, 0.03, -0.19] },
+  { word: "is",        nums: [0.05, 0.11, -0.33, 0.72, 0.48]  },
+  { word: "quantum",   nums: [-0.61, 0.92, 0.14, -0.77, 0.55] },
+  { word: "computing", nums: [0.38, -0.29, 0.66, 0.41, -0.83] },
+  { word: "?",         nums: [0.00, 0.01, -0.02, 0.99, 0.00]  },
+];
+
+const CTX_DATA = [
+  {
+    word: "What",
+    meaning: "interrogative determiner",
+    desc: "<strong>\"What\"</strong> — its role as a question word is unambiguous. Context confirms this is a direct question.",
+  },
+  {
+    word: "is",
+    meaning: "linking verb (present)",
+    desc: "<strong>\"is\"</strong> — between a question word and a noun phrase, this is clearly a linking verb asking for a definition.",
+  },
+  {
+    word: "quantum",
+    meaning: "physics / computing domain",
+    desc: "<strong>\"quantum\"</strong> — could mean physics, computing, or informally \"very small.\" The following word <em>computing</em> pins it to the computing domain.",
+  },
+  {
+    word: "computing",
+    meaning: "field of computation",
+    desc: "<strong>\"computing\"</strong> — together with \"quantum\" this becomes a proper technical term: <em>quantum computing</em>.",
+  },
+  {
+    word: "?",
+    meaning: "question terminator",
+    desc: "<strong>\"?\"</strong> — confirms the entire sequence is an interrogative sentence, reinforcing that a definition-style answer is expected.",
+  },
+];
+
+const GEN_STEPS = [
+  {
+    word: "Quantum",
+    probs: [
+      { word: "Quantum",   pct: 82, selected: true  },
+      { word: "It",        pct: 9,  selected: false },
+      { word: "Computing", pct: 5,  selected: false },
+      { word: "This",      pct: 4,  selected: false },
+    ]
+  },
+  {
+    word: "computing",
+    probs: [
+      { word: "computing", pct: 91, selected: true  },
+      { word: "mechanics", pct: 5,  selected: false },
+      { word: "physics",   pct: 4,  selected: false },
+    ]
+  },
+  {
+    word: "is",
+    probs: [
+      { word: "is",      pct: 78, selected: true  },
+      { word: "uses",    pct: 12, selected: false },
+      { word: "refers",  pct: 10, selected: false },
+    ]
+  },
+  {
+    word: "a",
+    probs: [
+      { word: "a",    pct: 70, selected: true  },
+      { word: "an",   pct: 22, selected: false },
+      { word: "the",  pct: 8,  selected: false },
+    ]
+  },
+  {
+    word: "type",
+    probs: [
+      { word: "type",       pct: 55, selected: true  },
+      { word: "paradigm",   pct: 24, selected: false },
+      { word: "form",       pct: 21, selected: false },
+    ]
+  },
+  {
+    word: "of",
+    probs: [
+      { word: "of",   pct: 97, selected: true  },
+      { word: "for",  pct: 3,  selected: false },
+    ]
+  },
+  {
+    word: "computation",
+    probs: [
+      { word: "computation", pct: 61, selected: true  },
+      { word: "computing",   pct: 27, selected: false },
+      { word: "processing",  pct: 12, selected: false },
+    ]
+  },
+  {
+    word: "that",
+    probs: [
+      { word: "that",  pct: 88, selected: true  },
+      { word: "which", pct: 12, selected: false },
+    ]
+  },
+  {
+    word: "harnesses",
+    probs: [
+      { word: "harnesses",  pct: 38, selected: true  },
+      { word: "uses",       pct: 35, selected: false },
+      { word: "leverages",  pct: 27, selected: false },
+    ]
+  },
+  {
+    word: "quantum",
+    probs: [
+      { word: "quantum",    pct: 94, selected: true  },
+      { word: "subatomic",  pct: 6,  selected: false },
+    ]
+  },
+  {
+    word: "mechanics.",
+    probs: [
+      { word: "mechanics.", pct: 73, selected: true  },
+      { word: "phenomena.", pct: 27, selected: false },
+    ]
+  },
+  {
+    word: "<EOS>",
+    probs: [
+      { word: "<EOS>",      pct: 88, selected: true  },
+      { word: "Unlike",     pct: 8,  selected: false },
+      { word: "It",         pct: 4,  selected: false },
+    ]
+  },
+];
+
+/* ═══════════════════════════════════
+   STATE
+═══════════════════════════════════ */
+let currentStage = 1; // 1–4
+let stage1Done = false, stage2Done = false, stage3Done = false;
+let genStep = 0;
+let genRunning = false;
+
+/* ═══════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════ */
+function showStage(n) {
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById(`panel-${i}`).classList.toggle("visible", i === n);
+    const tab = document.getElementById(`tab-${i}`);
+    tab.classList.remove("active");
+    if (i < n) tab.classList.add("done"); else tab.classList.remove("done");
+    if (i === n) tab.classList.add("active");
+  }
+  document.getElementById("step-indicator").textContent = `Stage ${n} of 4`;
+  document.getElementById("btn-prev").disabled = (n === 1);
+
+  const btn = document.getElementById("btn-next");
+  if (n < 4) {
+    btn.textContent = "Run Stage →";
+    btn.disabled = false;
+  } else {
+    btn.textContent = genStep >= GEN_STEPS.length ? "Complete ✓" : "Generate Next Word →";
+    btn.disabled = genStep >= GEN_STEPS.length;
+  }
+}
+
+function nextStage() {
+  if (currentStage === 1) {
+    if (!stage1Done) { runTokenization(); return; }
+    currentStage = 2; showStage(2); return;
+  }
+  if (currentStage === 2) {
+    if (!stage2Done) { runEmbedding(); return; }
+    currentStage = 3; showStage(3); return;
+  }
+  if (currentStage === 3) {
+    if (!stage3Done) { runContextualization(); return; }
+    currentStage = 4; showStage(4); return;
+  }
+  if (currentStage === 4) { runGenerationStep(); return; }
+}
+
+function prevStage() {
+  if (currentStage > 1) { currentStage--; showStage(currentStage); }
+}
+
+function resetDemo() {
+  currentStage = 1;
+  stage1Done = stage2Done = stage3Done = false;
+  genStep = 0; genRunning = false;
+  // Clear tokens
+  document.getElementById("tokens-row").innerHTML = "";
+  document.getElementById("token-count-note").textContent = "";
+  document.getElementById("embed-grid").innerHTML = "";
+  document.getElementById("ctx-tokens").innerHTML = "";
+  document.getElementById("ctx-desc").textContent = "← Click a token to see how context shapes its meaning.";
+  document.getElementById("gen-output").innerHTML = "";
+  document.getElementById("prob-bars").innerHTML = "";
+  document.getElementById("gen-stop").classList.remove("show");
+  showStage(1);
+  document.getElementById("btn-next").textContent = "Run Stage →";
+  document.getElementById("btn-next").disabled = false;
+}
+
+/* ═══════════════════════════════════
+   STAGE 1 — TOKENIZATION
+═══════════════════════════════════ */
+function runTokenization() {
+  stage1Done = true;
+  document.getElementById("btn-next").disabled = true;
+  const row = document.getElementById("tokens-row");
+  TOKEN_DATA.forEach((t, i) => {
+    const el = document.createElement("div");
+    el.className = "token";
+    el.innerHTML = `${t.word}<span class="token-id">#${t.id}</span>`;
+    row.appendChild(el);
+    setTimeout(() => el.classList.add("show"), i * 200);
+  });
+  setTimeout(() => {
+    document.getElementById("token-count-note").textContent =
+      `✓ ${TOKEN_DATA.length} tokens extracted. Token IDs are looked up in Claude's vocabulary of ~100 000 entries.`;
+    document.getElementById("btn-next").textContent = "Next Stage →";
+    document.getElementById("btn-next").disabled = false;
+  }, TOKEN_DATA.length * 200 + 300);
+}
+
+/* ═══════════════════════════════════
+   STAGE 2 — EMBEDDING
+═══════════════════════════════════ */
+function runEmbedding() {
+  stage2Done = true;
+  document.getElementById("btn-next").disabled = true;
+  const grid = document.getElementById("embed-grid");
+  EMBED_DATA.forEach((e, i) => {
+    const card = document.createElement("div");
+    card.className = "embed-card";
+    const numsHtml = e.nums.map(n => `<span class="embed-num">${n.toFixed(2)}</span>`).join("");
+    card.innerHTML = `<div class="embed-word">"${e.word}"</div><div class="embed-nums">${numsHtml}</div><div class="embed-dots">… × 1 536 dimensions</div>`;
+    grid.appendChild(card);
+    setTimeout(() => card.classList.add("show"), i * 180);
+  });
+  setTimeout(() => {
+    document.getElementById("btn-next").textContent = "Next Stage →";
+    document.getElementById("btn-next").disabled = false;
+  }, EMBED_DATA.length * 180 + 300);
+}
+
+/* ═══════════════════════════════════
+   STAGE 3 — CONTEXTUALIZATION
+═══════════════════════════════════ */
+function runContextualization() {
+  stage3Done = true;
+  const container = document.getElementById("ctx-tokens");
+  container.innerHTML = "";
+  CTX_DATA.forEach((c, i) => {
+    const el = document.createElement("div");
+    el.className = "ctx-token";
+    el.innerHTML = `${c.word}<span class="meaning">${c.meaning}</span>`;
+    el.addEventListener("click", () => activateCtxToken(i));
+    container.appendChild(el);
+    setTimeout(() => { el.style.opacity = "1"; }, i * 120);
+  });
+  setTimeout(() => {
+    document.getElementById("btn-next").textContent = "Next Stage →";
+    document.getElementById("btn-next").disabled = false;
+  }, CTX_DATA.length * 120 + 200);
+}
+
+function activateCtxToken(idx) {
+  document.querySelectorAll(".ctx-token").forEach((el, i) => {
+    el.classList.remove("active", "highlight");
+    if (i === idx) el.classList.add("active");
+    else if (Math.abs(i - idx) === 1) el.classList.add("highlight");
+  });
+  document.getElementById("ctx-desc").innerHTML = CTX_DATA[idx].desc;
+}
+
+/* ═══════════════════════════════════
+   STAGE 4 — GENERATION
+═══════════════════════════════════ */
+function renderProbBars(step) {
+  const container = document.getElementById("prob-bars");
+  container.innerHTML = "";
+  step.probs.forEach(p => {
+    const row = document.createElement("div");
+    row.className = "prob-row";
+    row.innerHTML = `
+      <div class="prob-word">${p.word}</div>
+      <div class="prob-bar-bg">
+        <div class="prob-bar-fill ${p.selected ? "selected" : ""}" style="width:0%" data-pct="${p.pct}"></div>
+      </div>
+      <div class="prob-pct">${p.pct}%</div>`;
+    container.appendChild(row);
+  });
+  // animate bars
+  requestAnimationFrame(() => {
+    container.querySelectorAll(".prob-bar-fill").forEach(bar => {
+      bar.style.width = bar.dataset.pct + "%";
+    });
+  });
+}
+
+function runGenerationStep() {
+  if (genStep >= GEN_STEPS.length) return;
+  const step = GEN_STEPS[genStep];
+
+  if (step.word === "<EOS>") {
+    // End of sequence
+    renderProbBars(step);
+    document.getElementById("gen-stop").classList.add("show");
+    document.getElementById("btn-next").textContent = "Complete ✓";
+    document.getElementById("btn-next").disabled = true;
+    genStep++;
+    return;
+  }
+
+  // Append word to output
+  const output = document.getElementById("gen-output");
+  const span = document.createElement("span");
+  span.className = "gen-word-new";
+  span.textContent = (genStep === 0 ? "" : " ") + step.word;
+  output.appendChild(span);
+  setTimeout(() => span.className = "", 500);
+
+  renderProbBars(step);
+  genStep++;
+
+  if (genStep >= GEN_STEPS.length) {
+    document.getElementById("btn-next").textContent = "Complete ✓";
+    document.getElementById("btn-next").disabled = true;
+  }
+}
+
+/* ── Init ── */
+showStage(1);
+</script>
+</body>
+</html>
