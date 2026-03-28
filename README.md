@@ -153,6 +153,37 @@ python3 demo_api.py
 | Response text | `response.content[0].text` | `response.text` | `response.choices[0].message.content` |
 | Token usage | `response.usage.input_tokens` | `response.usage_metadata.prompt_token_count` | `response.usage.prompt_tokens` |
 
+### Provider Portability: Switching to Local Models
+
+A key consequence of the SDK differences above: not all providers are equally portable.
+
+When app developers move computation to local open-source models (Ollama, LM Studio, vLLM, llama.cpp), the OpenAI API format has become the **de facto standard**. Most local model servers implement an OpenAI-compatible endpoint.
+
+If your app uses the **OpenAI SDK**, switching to a local model often requires only two lines:
+
+```python
+# Cloud
+client = OpenAI(api_key="sk-...")
+
+# Local — only base_url changes, nothing else in your code
+client = OpenAI(
+    base_url="http://localhost:11434/v1",  # Ollama, LM Studio, vLLM, etc.
+    api_key="local"                        # required by SDK, not validated locally
+)
+```
+
+The `client.chat.completions.create(...)` call and all downstream code remain unchanged.
+
+**Anthropic and Google SDKs have no equivalent path.** They speak their own protocol; local models do not understand it. Switching would require rewriting to the OpenAI SDK or adding a translation layer (e.g., LiteLLM).
+
+| SDK | Local model portability |
+|---|---|
+| OpenAI SDK | Change `base_url` only |
+| Anthropic SDK | Rewrite required |
+| Google genai SDK | Rewrite required |
+
+> **Architectural takeaway:** If compute portability matters to your app, build against the OpenAI SDK format — even when calling Claude or Gemini via a proxy — to keep the option of moving to local models with minimal friction.
+
 ### Multi-provider architecture: `server3.py` + `client3.py`
 
 Same two-tier pattern as Phase 1, extended to route requests to any provider.

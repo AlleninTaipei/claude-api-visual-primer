@@ -12,8 +12,8 @@ from openai import OpenAI
 # --- Step 1: Configuration ---
 load_dotenv(Path(__file__).parent / "env.local")
 
-# Read provider from environment variable (defaults to "google")
-PROVIDER = os.environ.get("DEFAULT_PROVIDER", "google").strip().lower()
+# Read provider from environment variable (defaults to "openai")
+PROVIDER = os.environ.get("DEFAULT_PROVIDER", "openai").strip().lower()
 ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-haiku-4-5")
 GOOGLE_MODEL = os.environ.get("GOOGLE_MODEL", "gemini-3-flash-preview")
 OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
@@ -75,6 +75,8 @@ elif PROVIDER == "openai":
         raise EnvironmentError("OPENAI_API_KEY not found in env.local.")
 
     client = OpenAI(api_key=api_key)
+    # To route to a local model instead (Ollama, LM Studio, vLLM) — only base_url changes:
+    # client = OpenAI(base_url="http://localhost:11434/v1", api_key="local")
     model_name = OPENAI_MODEL
 
     print(f"Model      : {model_name}")

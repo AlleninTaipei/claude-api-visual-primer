@@ -565,6 +565,56 @@ data = json.<span class="fn">loads</span>(raw)                   <span class="cm
     <p style="margin-top:10px">The prefill opens the code fence; the stop sequence closes it. Everything in between is guaranteed to be the JSON body.</p>
   </section>
 
+  <!-- ── 12. Provider Portability ── -->
+  <section>
+    <h2>Provider Portability and Local Models</h2>
+    <p>When app developers move computation to local open-source models — Ollama, LM Studio, vLLM, llama.cpp — a practical question arises: does the code need to be rewritten?</p>
+    <p>The answer depends entirely on which SDK was used to build the app.</p>
+
+    <h3>OpenAI SDK: change <code>base_url</code>, nothing else</h3>
+    <p>The OpenAI API format has become the de facto standard for local model servers. Most local inference engines implement an OpenAI-compatible endpoint.</p>
+    <pre class="code-block"><span class="cmt"># Cloud (OpenAI)</span>
+client = <span class="fn">OpenAI</span>(<span class="key">api_key</span>=<span class="str">"sk-..."</span>)
+
+<span class="cmt"># Local — two-line change, all other code unchanged</span>
+client = <span class="fn">OpenAI</span>(
+    <span class="key">base_url</span>=<span class="str">"http://localhost:11434/v1"</span>,  <span class="cmt"># Ollama, LM Studio, vLLM, etc.</span>
+    <span class="key">api_key</span>=<span class="str">"local"</span>                        <span class="cmt"># required by SDK, not validated locally</span>
+)</pre>
+    <p><code>client.chat.completions.create(…)</code> calls, message format, and response parsing all stay the same. The SDK simply points at a different server.</p>
+
+    <h3>Anthropic and Google SDKs: rewrite required</h3>
+    <p>These SDKs communicate in their own protocol. Local model servers do not implement the Anthropic Messages API or the Google genai format. Switching requires either rewriting to the OpenAI SDK or introducing a proxy layer that translates (e.g., LiteLLM).</p>
+
+    <table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:0.92em">
+      <thead>
+        <tr style="background:#1e293b;color:#94a3b8;text-align:left">
+          <th style="padding:10px 14px;border-bottom:1px solid #334155">SDK</th>
+          <th style="padding:10px 14px;border-bottom:1px solid #334155">Local model portability</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid #1e293b">
+          <td style="padding:10px 14px;color:#e2e8f0">OpenAI SDK</td>
+          <td style="padding:10px 14px;color:#68d391">Change <code>base_url</code> only</td>
+        </tr>
+        <tr style="border-bottom:1px solid #1e293b">
+          <td style="padding:10px 14px;color:#e2e8f0">Anthropic SDK</td>
+          <td style="padding:10px 14px;color:#fc8181">Rewrite required</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 14px;color:#e2e8f0">Google genai SDK</td>
+          <td style="padding:10px 14px;color:#fc8181">Rewrite required</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info-box">
+      <div class="tag">ARCHITECTURAL TAKEAWAY</div>
+      <p>If compute portability matters to your app, build against the OpenAI SDK format from the start — even when routing to Claude or Gemini via a proxy. This keeps the cost of changing compute providers as low as possible.</p>
+    </div>
+  </section>
+
 </main>
 
 <script>

@@ -262,3 +262,47 @@ add_assistant_message(messages, "```json")
 text = chat(messages, stop_sequences=["```"])
 parsed_json = json.loads(text.strip())
 ```
+
+---
+
+### Provider Portability and Local Models
+
+When app developers move computation to local open-source models — Ollama, LM Studio, vLLM, llama.cpp — a practical question arises: does the code need to be rewritten?
+
+The answer depends entirely on which SDK was used to build the app.
+
+#### OpenAI SDK: change `base_url`, nothing else
+
+The OpenAI API format has become the de facto standard for local model servers. Most local inference engines implement an OpenAI-compatible endpoint.
+
+```python
+# Cloud (OpenAI)
+client = OpenAI(api_key="sk-...")
+
+# Local — two-line change, all other code unchanged
+client = OpenAI(
+    base_url="http://localhost:11434/v1",
+    api_key="local"
+)
+```
+
+`client.chat.completions.create(...)` calls, message format, and response parsing all stay the same. The SDK simply points at a different server.
+
+#### Anthropic and Google SDKs: rewrite required
+
+These SDKs communicate in their own protocol. Local model servers do not implement the Anthropic Messages API or Google genai format. Switching requires either:
+
+* Rewriting to the OpenAI SDK
+* Introducing a proxy layer that translates (e.g., LiteLLM)
+
+#### SDK lock-in summary
+
+| SDK | Local model portability |
+|---|---|
+| OpenAI SDK | Change `base_url` only |
+| Anthropic SDK | Rewrite required |
+| Google genai SDK | Rewrite required |
+
+#### Architectural implication
+
+If your application needs to remain portable across cloud providers and local compute, build against the OpenAI SDK format from the start — even when routing to Claude or Gemini via a proxy. This keeps the cost of changing compute providers as low as possible.
