@@ -557,6 +557,103 @@
       height: 100%; background: #4299e1; border-radius: 3px; transition: width 0.4s ease;
     }
     .mt-size-pct { font-family: monospace; font-size: 0.68rem; color: #718096; white-space: nowrap; }
+
+    /* ══════════════════════════════════
+       STREAMING VISUALIZER
+    ══════════════════════════════════ */
+    .sv-container {
+      background: #0d1117; border: 1px solid #2d3748; border-radius: 12px;
+      padding: 22px; margin: 20px 0;
+    }
+    .sv-controls {
+      display: flex; gap: 8px; align-items: center; margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .sv-speed-group { display: flex; gap: 4px; margin-left: auto; align-items: center; }
+    .sv-speed-label { font-size: 0.7rem; color: #718096; margin-right: 4px; }
+    .sv-speed-btn {
+      padding: 4px 10px; border-radius: 5px; font-size: 0.7rem; font-weight: 600;
+      cursor: pointer; border: 1px solid #2d3748; background: #1a202c; color: #718096;
+      transition: all 0.15s;
+    }
+    .sv-speed-btn.active { background: #2b6cb0; border-color: #4299e1; color: #fff; }
+
+    .sv-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 640px) { .sv-columns { grid-template-columns: 1fr; } }
+
+    .sv-panel {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 10px; overflow: hidden;
+    }
+    .sv-panel-header {
+      padding: 9px 14px; border-bottom: 1px solid #2d3748;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .sv-panel-title {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+    }
+    .sv-panel-title.no-stream { color: #fc8181; }
+    .sv-panel-title.yes-stream { color: #68d391; }
+    .sv-panel-status { font-size: 0.68rem; color: #4a5568; transition: color 0.3s; font-family: monospace; }
+    .sv-panel-body { padding: 12px 14px; min-height: 200px; }
+
+    /* no-stream side */
+    .sv-waiting {
+      display: none; align-items: center; justify-content: center;
+      gap: 6px; min-height: 100px; color: #718096; font-size: 0.8rem;
+    }
+    .sv-waiting.show { display: flex; }
+    .sv-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: #4a5568;
+      animation: svDotPulse 1.1s ease-in-out infinite;
+    }
+    .sv-dot:nth-child(2) { animation-delay: 0.2s; }
+    .sv-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes svDotPulse { 0%,100%{opacity:0.25;transform:scale(0.75)} 50%{opacity:1;transform:scale(1)} }
+
+    .sv-nostream-out {
+      display: none; font-size: 0.85rem; color: #e2e8f0; line-height: 1.75;
+      animation: svReveal 0.4s ease;
+    }
+    .sv-nostream-out.show { display: block; }
+    @keyframes svReveal {
+      0%   { background: #1a3a28; border-radius: 6px; padding: 4px; }
+      100% { background: transparent; padding: 0; }
+    }
+
+    /* stream side: event log */
+    .sv-event-log {
+      display: flex; flex-direction: column; gap: 3px;
+      max-height: 150px; overflow-y: auto; margin-bottom: 10px;
+    }
+    .sv-ev-row {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 0.7rem; opacity: 0.22; transition: opacity 0.2s;
+    }
+    .sv-ev-row.done   { opacity: 0.45; }
+    .sv-ev-row.active { opacity: 1; }
+    .sv-ev-icon { width: 10px; text-align: center; font-size: 0.6rem; color: #4a5568; flex-shrink: 0; }
+    .sv-ev-row.done .sv-ev-icon   { color: #68d391; }
+    .sv-ev-row.active .sv-ev-icon { color: #f6ad55; }
+    .sv-ev-badge {
+      font-family: monospace; font-size: 0.67rem; padding: 1px 6px;
+      border-radius: 3px; font-weight: 600; white-space: nowrap; flex-shrink: 0;
+    }
+    .b-msg-start  { background: #2d1f4a; color: #b794f4; }
+    .b-blk-start  { background: #1a2a4a; color: #90cdf4; }
+    .b-blk-delta  { background: #1a3a28; color: #68d391; }
+    .b-blk-stop   { background: #3a2a10; color: #f6ad55; }
+    .b-msg-delta  { background: #3a2a10; color: #f6ad55; }
+    .b-msg-stop   { background: #2d2020; color: #fc8181; }
+    .sv-ev-snippet {
+      font-family: monospace; font-size: 0.65rem; color: #4a5568;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;
+    }
+    .sv-ev-row.active .sv-ev-snippet { color: #a0aec0; }
+
+    .sv-stream-divider { height: 1px; background: #2d3748; margin: 8px 0; }
+    .sv-stream-out {
+      font-size: 0.85rem; color: #e2e8f0; line-height: 1.75;
+      min-height: 44px; font-family: monospace;
+    }
   </style>
 </head>
 <body>
@@ -1094,13 +1191,51 @@ messages = []
   <section>
     <h2>Response Streaming</h2>
     <p>By default, Claude sends the entire response at once — causing a noticeable wait. With streaming, Claude sends text chunks as they are generated, so users see output appear word by word.</p>
-    <div class="event-list">
-      <div class="event-item"><div class="event-name">MessageStart</div><div class="event-desc">A new message has begun</div></div>
-      <div class="event-item"><div class="event-name">ContentBlockStart</div><div class="event-desc">A new content block (text, tool use, etc.) is starting</div></div>
-      <div class="event-item"><div class="event-name">ContentBlockDelta</div><div class="event-desc">A chunk of generated text — forward this to the client immediately</div></div>
-      <div class="event-item"><div class="event-name">ContentBlockStop</div><div class="event-desc">The current content block is complete</div></div>
-      <div class="event-item"><div class="event-name">MessageDelta</div><div class="event-desc">Final metadata for the message (stop reason, usage)</div></div>
-      <div class="event-item"><div class="event-name">MessageStop</div><div class="event-desc">End of the stream</div></div>
+    <div class="sv-container">
+      <div class="sv-controls">
+        <button class="btn btn-primary" id="svPlayBtn" onclick="svPlay()">▶ Play</button>
+        <button class="btn btn-ghost" onclick="svReset()">↺ Reset</button>
+        <div class="sv-speed-group">
+          <span class="sv-speed-label">Speed:</span>
+          <button class="sv-speed-btn" data-speed="slow"   onclick="svSetSpeed('slow')">Slow</button>
+          <button class="sv-speed-btn active" data-speed="normal" onclick="svSetSpeed('normal')">Normal</button>
+          <button class="sv-speed-btn" data-speed="fast"   onclick="svSetSpeed('fast')">Fast</button>
+        </div>
+      </div>
+
+      <div class="sv-columns">
+
+        <!-- Left: no streaming -->
+        <div class="sv-panel">
+          <div class="sv-panel-header">
+            <span class="sv-panel-title no-stream">Without Streaming</span>
+            <span class="sv-panel-status" id="svNoStreamStatus">ready</span>
+          </div>
+          <div class="sv-panel-body">
+            <div class="sv-waiting" id="svWaiting">
+              <div class="sv-dot"></div>
+              <div class="sv-dot"></div>
+              <div class="sv-dot"></div>
+              <span style="margin-left:4px">Waiting for complete response…</span>
+            </div>
+            <div class="sv-nostream-out" id="svNoStreamOut">Quantum computing harnesses quantum mechanical phenomena — superposition and entanglement — to process information.</div>
+          </div>
+        </div>
+
+        <!-- Right: streaming -->
+        <div class="sv-panel">
+          <div class="sv-panel-header">
+            <span class="sv-panel-title yes-stream">With Streaming</span>
+            <span class="sv-panel-status" id="svStreamStatus">ready</span>
+          </div>
+          <div class="sv-panel-body">
+            <div class="sv-event-log" id="svEventLog"></div>
+            <div class="sv-stream-divider"></div>
+            <div class="sv-stream-out" id="svStreamOut"></div>
+          </div>
+        </div>
+
+      </div>
     </div>
     <pre class="code-block"><span class="kw">with</span> client.messages.<span class="fn">stream</span>(
     <span class="key">model</span>=model, <span class="key">max_tokens</span>=<span class="str">1000</span>, <span class="key">messages</span>=messages
@@ -1749,6 +1884,121 @@ function mtReset() {
 }
 
 mtRender();
+
+/* ═══════════════════════════════════
+   STREAMING VISUALIZER
+═══════════════════════════════════ */
+const SV_EVENTS = [
+  { type: 'message_start',       badge: 'b-msg-start',  snippet: '"id":"msg_01XZ…","model":"claude-haiku-4-5"',     text: null },
+  { type: 'content_block_start', badge: 'b-blk-start',  snippet: '"index":0,"content_block":{"type":"text"}',       text: null },
+  { type: 'content_block_delta', badge: 'b-blk-delta',  snippet: '"text":"Quantum "',                               text: 'Quantum ' },
+  { type: 'content_block_delta', badge: 'b-blk-delta',  snippet: '"text":"computing "',                             text: 'computing ' },
+  { type: 'content_block_delta', badge: 'b-blk-delta',  snippet: '"text":"harnesses "',                             text: 'harnesses ' },
+  { type: 'content_block_delta', badge: 'b-blk-delta',  snippet: '"text":"quantum mechanical "',                    text: 'quantum mechanical ' },
+  { type: 'content_block_delta', badge: 'b-blk-delta',  snippet: '"text":"phenomena — "',                           text: 'phenomena — ' },
+  { type: 'content_block_delta', badge: 'b-blk-delta',  snippet: '"text":"superposition "',                         text: 'superposition ' },
+  { type: 'content_block_delta', badge: 'b-blk-delta',  snippet: '"text":"and entanglement — "',                    text: 'and entanglement — ' },
+  { type: 'content_block_delta', badge: 'b-blk-delta',  snippet: '"text":"to process information."',                text: 'to process information.' },
+  { type: 'content_block_stop',  badge: 'b-blk-stop',   snippet: '"index":0',                                       text: null },
+  { type: 'message_delta',       badge: 'b-msg-delta',  snippet: '"stop_reason":"end_turn","output_tokens":25',     text: null },
+  { type: 'message_stop',        badge: 'b-msg-stop',   snippet: '"type":"message_stop"',                           text: null },
+];
+
+const SV_SPEEDS = { slow: 650, normal: 320, fast: 100 };
+let svSpeed  = 'normal';
+let svIdx    = 0;
+let svTimer  = null;
+let svState  = 'idle';
+
+function svSetSpeed(s) {
+  svSpeed = s;
+  document.querySelectorAll('.sv-speed-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.speed === s));
+}
+
+function svBuildLog() {
+  const log = document.getElementById('svEventLog');
+  log.innerHTML = '';
+  SV_EVENTS.forEach(ev => {
+    const row = document.createElement('div');
+    row.className = 'sv-ev-row';
+    row.innerHTML = `<span class="sv-ev-icon">·</span>
+      <span class="sv-ev-badge ${ev.badge}">${ev.type}</span>
+      <span class="sv-ev-snippet">${ev.snippet}</span>`;
+    log.appendChild(row);
+  });
+}
+
+function svPlay() {
+  if (svState !== 'idle') return;
+  svState = 'playing';
+  document.getElementById('svPlayBtn').disabled = true;
+  document.getElementById('svWaiting').classList.add('show');
+  document.getElementById('svNoStreamStatus').textContent = 'waiting…';
+  svStep();
+}
+
+function svStep() {
+  if (svIdx >= SV_EVENTS.length) {
+    // done — reveal full text on left
+    document.getElementById('svWaiting').classList.remove('show');
+    document.getElementById('svNoStreamOut').classList.add('show');
+    document.getElementById('svNoStreamStatus').textContent = 'complete';
+    document.getElementById('svStreamStatus').textContent  = 'complete';
+    // mark last row done
+    document.querySelectorAll('.sv-ev-row').forEach(r => {
+      r.classList.remove('active'); r.classList.add('done');
+      r.querySelector('.sv-ev-icon').textContent = '✓';
+    });
+    svState = 'done';
+    return;
+  }
+
+  const rows = document.querySelectorAll('.sv-ev-row');
+  // mark previous done
+  if (svIdx > 0) {
+    rows[svIdx - 1].classList.remove('active');
+    rows[svIdx - 1].classList.add('done');
+    rows[svIdx - 1].querySelector('.sv-ev-icon').textContent = '✓';
+  }
+  // activate current
+  rows[svIdx].classList.add('active');
+  rows[svIdx].querySelector('.sv-ev-icon').textContent = '→';
+  rows[svIdx].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
+  // append text chunk if delta
+  const ev = SV_EVENTS[svIdx];
+  if (ev.text) {
+    const out  = document.getElementById('svStreamOut');
+    const span = document.createElement('span');
+    span.className = 'sv-stream-word-new';
+    span.textContent = ev.text;
+    out.appendChild(span);
+    setTimeout(() => span.className = '', 400);
+    const deltasSeen = SV_EVENTS.slice(0, svIdx + 1).filter(e => e.text).length;
+    document.getElementById('svStreamStatus').textContent = `${deltasSeen} chunk${deltasSeen !== 1 ? 's' : ''} received`;
+  }
+
+  svIdx++;
+  svTimer = setTimeout(svStep, SV_SPEEDS[svSpeed]);
+}
+
+function svReset() {
+  clearTimeout(svTimer);
+  svState = 'idle'; svIdx = 0;
+  document.querySelectorAll('.sv-ev-row').forEach(r => {
+    r.classList.remove('active', 'done');
+    r.querySelector('.sv-ev-icon').textContent = '·';
+  });
+  document.getElementById('svStreamOut').innerHTML    = '';
+  document.getElementById('svNoStreamOut').classList.remove('show');
+  document.getElementById('svWaiting').classList.remove('show');
+  document.getElementById('svStreamStatus').textContent    = 'ready';
+  document.getElementById('svNoStreamStatus').textContent  = 'ready';
+  document.getElementById('svPlayBtn').disabled = false;
+}
+
+svBuildLog();
 
 /* ── Init ── */
 showStage(1);
