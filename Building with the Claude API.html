@@ -407,6 +407,82 @@
     @media (max-width: 600px) {
       .temp-grid { grid-template-columns: 1fr; }
     }
+
+    /* ══════════════════════════════════
+       TEMPERATURE VISUALIZER
+    ══════════════════════════════════ */
+    .temp-slider-wrap {
+      background: #0d1117; border: 1px solid #2d3748; border-radius: 12px;
+      padding: 22px 24px; margin-bottom: 20px;
+    }
+    .temp-top-row {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      margin-bottom: 18px; flex-wrap: wrap; gap: 10px;
+    }
+    .temp-val {
+      font-family: monospace; font-size: 2.4rem; font-weight: 700;
+      color: #e2e8f0; line-height: 1; transition: color 0.25s;
+    }
+    .temp-val-label {
+      font-size: 0.68rem; color: #4a5568; text-transform: uppercase;
+      letter-spacing: 0.07em; margin-bottom: 5px;
+    }
+    .temp-zone {
+      padding: 5px 14px; border-radius: 20px; font-size: 0.73rem;
+      font-weight: 700; letter-spacing: 0.07em; transition: all 0.25s;
+    }
+    .temp-zone.z-precise  { background: #1a3a5c; color: #63b3ed; border: 1px solid #2a5a8c; }
+    .temp-zone.z-balanced { background: #1a3a28; color: #68d391; border: 1px solid #2a6a48; }
+    .temp-zone.z-creative { background: #3a2210; color: #f6ad55; border: 1px solid #7a4a20; }
+
+    input.temp-range {
+      -webkit-appearance: none; appearance: none;
+      width: 100%; height: 6px; border-radius: 3px; outline: none; cursor: pointer;
+      background: linear-gradient(to right, #63b3ed 0%, #68d391 40%, #f6ad55 100%);
+      margin-bottom: 6px;
+    }
+    input.temp-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: #fff; cursor: pointer;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.12), 0 2px 10px rgba(0,0,0,0.5);
+      transition: transform 0.1s;
+    }
+    input.temp-range::-webkit-slider-thumb:hover { transform: scale(1.15); }
+    input.temp-range::-moz-range-thumb {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: #fff; cursor: pointer; border: none;
+    }
+    .temp-tick-row {
+      display: flex; justify-content: space-between;
+      font-family: monospace; font-size: 0.68rem; color: #4a5568; padding: 0 2px;
+    }
+
+    .temp-ctx-line {
+      font-size: 0.8rem; color: #718096; margin: 0 0 12px;
+    }
+    .temp-ctx-line span { color: #90cdf4; font-family: monospace; }
+
+    .temp-prob-rows { display: flex; flex-direction: column; gap: 6px; margin-bottom: 24px; }
+    .temp-prob-row  { display: flex; align-items: center; gap: 12px; }
+    .temp-prob-word {
+      font-family: monospace; font-size: 0.8rem; color: #718096;
+      width: 100px; text-align: right; transition: color 0.25s;
+    }
+    .temp-prob-word.top-word { color: #e2e8f0; font-weight: 600; }
+    .temp-prob-bg   { flex: 1; background: #2d3748; border-radius: 4px; height: 16px; overflow: hidden; }
+    .temp-prob-fill { height: 100%; border-radius: 4px; background: #4299e1; transition: width 0.2s ease; }
+    .temp-prob-pct  {
+      font-family: monospace; font-size: 0.73rem; color: #718096;
+      width: 44px; transition: color 0.25s;
+    }
+    .temp-prob-pct.top-pct { color: #e2e8f0; }
+
+    .temp-card { transition: opacity 0.3s, border-color 0.3s, background 0.3s; }
+    .temp-card.tc-dimmed          { opacity: 0.3; }
+    .temp-card.tc-active-precise  { border-color: #4299e1; background: #111e2e; }
+    .temp-card.tc-active-balanced { border-color: #48bb78; background: #111e18; }
+    .temp-card.tc-active-creative { border-color: #ed8936; background: #1e150a; }
   </style>
 </head>
 <body>
@@ -850,9 +926,30 @@ messages = []
   <!-- ── 6. Temperature ── -->
   <section>
     <h2>Temperature</h2>
-    <p>Temperature is a decimal between <strong>0.0</strong> and <strong>1.0</strong> that controls how deterministic or creative Claude's word selection is. Low values favour the highest-probability token; high values introduce more randomness.</p>
-    <div class="temp-grid">
-      <div class="temp-card">
+    <p>Temperature controls how deterministic or creative Claude's word selection is — by scaling the probability distribution before picking the next token. Drag the slider to see the effect live.</p>
+
+    <div class="temp-slider-wrap">
+      <div class="temp-top-row">
+        <div>
+          <div class="temp-val-label">temperature</div>
+          <div class="temp-val" id="tempValDisplay">0.50</div>
+        </div>
+        <div class="temp-zone z-balanced" id="tempZoneBadge">BALANCED</div>
+      </div>
+      <input type="range" class="temp-range" id="tempSlider" min="0" max="100" value="50" oninput="updateTemp(this.value)">
+      <div class="temp-tick-row">
+        <span>0.0</span><span>0.25</span><span>0.5</span><span>0.75</span><span>1.0</span>
+      </div>
+    </div>
+
+    <div class="temp-ctx-line">
+      Predicting next word after: <span>"Quantum computing harnesses"</span>
+    </div>
+
+    <div class="temp-prob-rows" id="tempProbRows"></div>
+
+    <div class="temp-grid" id="tempZoneCards">
+      <div class="temp-card" id="tc-precise">
         <div class="range low">0.0 – 0.3</div>
         <div class="label">Precise / Factual</div>
         <ul>
@@ -862,7 +959,7 @@ messages = []
           <li>Content moderation</li>
         </ul>
       </div>
-      <div class="temp-card">
+      <div class="temp-card tc-active-balanced" id="tc-balanced">
         <div class="range mid">0.4 – 0.7</div>
         <div class="label">Balanced</div>
         <ul>
@@ -872,7 +969,7 @@ messages = []
           <li>Constrained creative writing</li>
         </ul>
       </div>
-      <div class="temp-card">
+      <div class="temp-card" id="tc-creative">
         <div class="range high">0.8 – 1.0</div>
         <div class="label">Creative / Varied</div>
         <ul>
@@ -1355,6 +1452,88 @@ function runGenerationStep() {
     document.getElementById("btn-next").disabled = true;
   }
 }
+
+/* ═══════════════════════════════════
+   TEMPERATURE VISUALIZER
+═══════════════════════════════════ */
+const TEMP_CANDIDATES = [
+  { word: "quantum",    logit: 4.5 },
+  { word: "the",        logit: 4.0 },
+  { word: "principles", logit: 3.3 },
+  { word: "subatomic",  logit: 2.6 },
+  { word: "strange",    logit: 1.9 },
+  { word: "mysterious", logit: 0.6 },
+];
+
+function tempSoftmax(logits, temp) {
+  const t = Math.max(temp, 0.01);
+  const scaled = logits.map(l => l / t);
+  const maxVal = Math.max(...scaled);
+  const exps = scaled.map(s => Math.exp(s - maxVal));
+  const sum = exps.reduce((a, b) => a + b, 0);
+  return exps.map(e => e / sum);
+}
+
+function getTempZone(temp) {
+  if (temp <= 0.3) return 'precise';
+  if (temp <= 0.7) return 'balanced';
+  return 'creative';
+}
+
+const ZONE_COLORS = { precise: '#63b3ed', balanced: '#68d391', creative: '#f6ad55' };
+
+function updateTemp(sliderVal) {
+  const temp = sliderVal / 100;
+  const zone = getTempZone(temp);
+  const color = ZONE_COLORS[zone];
+
+  // value + badge
+  document.getElementById('tempValDisplay').textContent = temp.toFixed(2);
+  const badge = document.getElementById('tempZoneBadge');
+  badge.className = `temp-zone z-${zone}`;
+  badge.textContent = zone.toUpperCase();
+
+  // probabilities (fixed word order by logit)
+  const probs = tempSoftmax(TEMP_CANDIDATES.map(c => c.logit), temp);
+  const maxProb = Math.max(...probs);
+
+  const rows = document.querySelectorAll('.temp-prob-row');
+  TEMP_CANDIDATES.forEach((item, i) => {
+    if (!rows[i]) return;
+    const pct = probs[i] * 100;
+    const isTop = probs[i] === maxProb;
+    rows[i].querySelector('.temp-prob-word').className = `temp-prob-word${isTop ? ' top-word' : ''}`;
+    const fill = rows[i].querySelector('.temp-prob-fill');
+    fill.style.width = pct.toFixed(1) + '%';
+    fill.style.background = isTop ? color : color + '55';
+    rows[i].querySelector('.temp-prob-pct').textContent = pct.toFixed(1) + '%';
+    rows[i].querySelector('.temp-prob-pct').className = `temp-prob-pct${isTop ? ' top-pct' : ''}`;
+  });
+
+  // zone cards
+  ['precise', 'balanced', 'creative'].forEach(z => {
+    const card = document.getElementById(`tc-${z}`);
+    card.className = 'temp-card';
+    if (z === zone) card.classList.add(`tc-active-${z}`);
+    else card.classList.add('tc-dimmed');
+  });
+}
+
+function initTempViz() {
+  const container = document.getElementById('tempProbRows');
+  TEMP_CANDIDATES.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'temp-prob-row';
+    row.innerHTML = `
+      <div class="temp-prob-word">"${item.word}"</div>
+      <div class="temp-prob-bg"><div class="temp-prob-fill" style="width:0%"></div></div>
+      <div class="temp-prob-pct">0%</div>`;
+    container.appendChild(row);
+  });
+  updateTemp(50);
+}
+
+initTempViz();
 
 /* ── Init ── */
 showStage(1);
