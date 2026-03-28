@@ -483,6 +483,80 @@
     .temp-card.tc-active-precise  { border-color: #4299e1; background: #111e2e; }
     .temp-card.tc-active-balanced { border-color: #48bb78; background: #111e18; }
     .temp-card.tc-active-creative { border-color: #ed8936; background: #1e150a; }
+
+    /* ══════════════════════════════════
+       MULTI-TURN VISUALIZER
+    ══════════════════════════════════ */
+    .mt-viz {
+      background: #0d1117; border: 1px solid #2d3748; border-radius: 12px;
+      padding: 22px; margin: 20px 0;
+    }
+    .mt-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 16px; flex-wrap: wrap; gap: 10px;
+    }
+    .mt-turn-info { display: flex; align-items: center; gap: 10px; }
+    .mt-turn-label { font-size: 0.85rem; font-weight: 600; color: #e2e8f0; }
+    .mt-msg-count {
+      font-size: 0.73rem; color: #718096;
+      background: #1a202c; border: 1px solid #2d3748;
+      padding: 3px 10px; border-radius: 20px;
+    }
+    .mt-token-badge {
+      font-family: monospace; font-size: 0.73rem;
+      background: #1a2a3a; border: 1px solid #2a4a6a; color: #63b3ed;
+      padding: 3px 10px; border-radius: 20px; transition: all 0.3s;
+    }
+
+    .mt-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 640px) { .mt-columns { grid-template-columns: 1fr; } }
+
+    .mt-panel-label {
+      font-size: 0.67rem; font-weight: 700; letter-spacing: 0.07em;
+      text-transform: uppercase; color: #4a5568; margin-bottom: 9px;
+    }
+
+    .mt-chat {
+      display: flex; flex-direction: column; gap: 9px; min-height: 200px;
+    }
+    .mt-bubble {
+      max-width: 88%; padding: 9px 13px; border-radius: 10px;
+      font-size: 0.8rem; line-height: 1.55; animation: fadeIn 0.35s ease;
+    }
+    .mt-bubble.user {
+      align-self: flex-end; border-bottom-right-radius: 3px;
+      background: #1a3a5c; border: 1px solid #2a5a8c; color: #bee3f8;
+    }
+    .mt-bubble.assistant {
+      align-self: flex-start; border-bottom-left-radius: 3px;
+      background: #1a202c; border: 1px solid #2d3748; color: #a0aec0;
+    }
+    .mt-bubble.new-bubble { border-color: #38a169; box-shadow: 0 0 0 1px #38a16940; }
+    .mt-bubble-role {
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; margin-bottom: 4px; color: #718096;
+    }
+    .mt-bubble.user .mt-bubble-role      { color: #90cdf4; }
+    .mt-bubble.new-bubble .mt-bubble-role { color: #68d391; }
+
+    .mt-payload-box {
+      background: #080c10; border: 1px solid #2d3748; border-radius: 8px;
+      padding: 12px 14px; font-family: monospace; font-size: 0.72rem;
+      line-height: 1.9; overflow-x: auto; min-height: 200px;
+      max-height: 300px; overflow-y: auto;
+    }
+    .mt-old-msg { color: #4a5568; }
+    .mt-new-msg { color: #e2e8f0; background: #0d2318; border-radius: 3px; }
+
+    .mt-size-bar-wrap {
+      display: flex; align-items: center; gap: 10px; margin-top: 14px;
+    }
+    .mt-size-label { font-size: 0.7rem; color: #718096; white-space: nowrap; }
+    .mt-size-bg { flex: 1; background: #2d3748; border-radius: 3px; height: 5px; }
+    .mt-size-fill {
+      height: 100%; background: #4299e1; border-radius: 3px; transition: width 0.4s ease;
+    }
+    .mt-size-pct { font-family: monospace; font-size: 0.68rem; color: #718096; white-space: nowrap; }
   </style>
 </head>
 <body>
@@ -895,6 +969,40 @@
   <section>
     <h2>Multi-turn Conversations</h2>
     <p>Claude is stateless — it has no memory of previous requests. To build a conversation, your code must maintain a running message list and send the <em>complete history</em> on every request.</p>
+
+    <div class="mt-viz" id="mtViz">
+      <div class="mt-header">
+        <div class="mt-turn-info">
+          <span class="mt-turn-label" id="mtTurnLabel">Ready</span>
+          <span class="mt-msg-count" id="mtMsgCount">0 messages in history</span>
+        </div>
+        <div class="mt-token-badge" id="mtTokenBadge">≈ 0 input tokens</div>
+      </div>
+      <div class="mt-columns">
+        <div>
+          <div class="mt-panel-label">Chat UI (what the user sees)</div>
+          <div class="mt-chat" id="mtChat">
+            <div style="color:#4a5568;font-size:0.8rem;text-align:center;padding:24px 0">Click "Start Conversation" to begin</div>
+          </div>
+        </div>
+        <div>
+          <div class="mt-panel-label">API payload — sent on every request</div>
+          <div class="mt-payload-box" id="mtPayload"><span style="color:#4a5568">// Complete message history included each time</span></div>
+        </div>
+      </div>
+      <div class="mt-size-bar-wrap">
+        <span class="mt-size-label">History size:</span>
+        <div class="mt-size-bg"><div class="mt-size-fill" id="mtSizeFill" style="width:0%"></div></div>
+        <span class="mt-size-pct" id="mtSizePct">0 / 8 messages</span>
+      </div>
+      <div class="demo-controls">
+        <button class="btn btn-ghost" id="mt-btn-prev" disabled onclick="mtNavigate(-1)">← Back</button>
+        <button class="btn btn-primary" id="mt-btn-next" onclick="mtNavigate(1)">Start Conversation →</button>
+        <button class="btn btn-ghost" onclick="mtReset()">↺ Reset</button>
+        <span class="step-indicator" id="mt-indicator">Turn 0 of 4</span>
+      </div>
+    </div>
+
     <pre class="code-block"><span class="cmt"># Keep a running list of all messages</span>
 messages = []
 
@@ -1534,6 +1642,113 @@ function initTempViz() {
 }
 
 initTempViz();
+
+/* ═══════════════════════════════════
+   MULTI-TURN VISUALIZER
+═══════════════════════════════════ */
+const MT_TURNS = [
+  {
+    user:      "What is quantum computing?",
+    assistant: "Quantum computing harnesses quantum mechanical phenomena — superposition and entanglement — to process information in ways classical computers cannot.",
+    tokens: 22,
+  },
+  {
+    user:      "How does it differ from classical computing?",
+    assistant: "Classical computers use bits (0 or 1). Quantum computers use qubits, which exist in both states at once, letting them explore many possibilities in parallel.",
+    tokens: 74,
+  },
+  {
+    user:      "What are its practical applications?",
+    assistant: "Key applications include drug discovery, cryptography, financial modelling, and solving complex optimisation problems that would take classical machines millennia.",
+    tokens: 122,
+  },
+  {
+    user:      "When will it be widely available?",
+    assistant: "Widespread use is still a decade or more away — current quantum computers are noisy and error-prone. But IBM, Google, and IonQ are making rapid progress.",
+    tokens: 168,
+  },
+];
+
+let mtTurn = 0;
+const MT_MAX = MT_TURNS.length;
+
+function mtBuildPayload(turnIdx) {
+  if (turnIdx === 0) {
+    return `<span style="color:#4a5568">// Complete message history included each time</span>`;
+  }
+  const trunc = (s, n) => s.length > n ? s.slice(0, n) + '…' : s;
+  let html = `<span class="lc-d">{</span>\n`;
+  html += `  <span class="lc-k">"model"</span>:      <span class="lc-s">"claude-haiku-4-5"</span>,\n`;
+  html += `  <span class="lc-k">"max_tokens"</span>: <span class="lc-n">1000</span>,\n`;
+  html += `  <span class="lc-k">"messages"</span>: [\n`;
+  for (let i = 0; i < turnIdx; i++) {
+    const isNew = i === turnIdx - 1;
+    const cls   = isNew ? 'mt-new-msg' : 'mt-old-msg';
+    const sep   = i < turnIdx - 1 ? ',' : '';
+    html += `    <span class="${cls}">{ <span class="lc-k">"role"</span>: <span class="lc-s">"user"</span>,      <span class="lc-k">"content"</span>: <span class="lc-s">"${trunc(MT_TURNS[i].user, 30)}"</span> },</span>\n`;
+    html += `    <span class="${cls}">{ <span class="lc-k">"role"</span>: <span class="lc-m">"assistant"</span>, <span class="lc-k">"content"</span>: <span class="lc-s">"${trunc(MT_TURNS[i].assistant, 30)}"</span> }${sep}</span>\n`;
+  }
+  html += `  ]\n<span class="lc-d">}</span>`;
+  return html;
+}
+
+function mtRender() {
+  const t = mtTurn;
+
+  // header
+  document.getElementById('mtTurnLabel').textContent  = t === 0 ? 'Ready' : `Turn ${t} of ${MT_MAX}`;
+  document.getElementById('mtMsgCount').textContent   = `${t * 2} message${t !== 1 ? 's' : ''} in history`;
+  document.getElementById('mtTokenBadge').textContent = `≈ ${t > 0 ? MT_TURNS[t-1].tokens : 0} input tokens`;
+
+  // chat
+  const chat = document.getElementById('mtChat');
+  chat.innerHTML = '';
+  if (t === 0) {
+    chat.innerHTML = `<div style="color:#4a5568;font-size:0.8rem;text-align:center;padding:24px 0">Click "Start Conversation" to begin</div>`;
+  } else {
+    for (let i = 0; i < t; i++) {
+      const isNew = i === t - 1;
+      const uDiv  = document.createElement('div');
+      uDiv.className = `mt-bubble user${isNew ? ' new-bubble' : ''}`;
+      uDiv.innerHTML = `<div class="mt-bubble-role">${isNew ? '✦ user' : 'user'}</div>${MT_TURNS[i].user}`;
+      const aDiv  = document.createElement('div');
+      aDiv.className = `mt-bubble assistant${isNew ? ' new-bubble' : ''}`;
+      aDiv.innerHTML = `<div class="mt-bubble-role">${isNew ? '✦ claude' : 'claude'}</div>${MT_TURNS[i].assistant}`;
+      chat.appendChild(uDiv);
+      chat.appendChild(aDiv);
+    }
+  }
+
+  // payload
+  const pb = document.getElementById('mtPayload');
+  pb.innerHTML = mtBuildPayload(t);
+  pb.scrollTop = pb.scrollHeight;
+
+  // size bar
+  document.getElementById('mtSizeFill').style.width = (t / MT_MAX * 100) + '%';
+  document.getElementById('mtSizePct').textContent  = `${t * 2} / ${MT_MAX * 2} messages`;
+
+  // buttons
+  document.getElementById('mt-btn-prev').disabled    = t === 0;
+  document.getElementById('mt-btn-next').disabled    = t === MT_MAX;
+  document.getElementById('mt-btn-next').textContent =
+    t === 0 ? 'Start Conversation →' : t === MT_MAX ? 'Complete ✓' : 'Next Turn →';
+  document.getElementById('mt-indicator').textContent = `Turn ${t} of ${MT_MAX}`;
+}
+
+function mtNavigate(dir) {
+  const next = Math.max(0, Math.min(MT_MAX, mtTurn + dir));
+  if (next === mtTurn) return;
+  mtTurn = next;
+  mtRender();
+}
+
+function mtReset() {
+  mtTurn = 0;
+  mtRender();
+}
+
+mtRender();
 
 /* ── Init ── */
 showStage(1);
