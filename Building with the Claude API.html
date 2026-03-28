@@ -36,36 +36,51 @@
     h3 { font-size: 1.05rem; font-weight: 600; color: #e2e8f0; margin: 20px 0 8px; }
     p  { color: #a0aec0; margin-bottom: 12px; }
 
-    /* ── Request Flow ── */
-    .flow {
-      display: flex; align-items: center; flex-wrap: wrap;
-      gap: 0; margin-top: 24px;
+    /* ── Code blocks ── */
+    .code-block {
+      background: #0d1117; border: 1px solid #2d3748; border-radius: 8px;
+      padding: 16px 18px; font-family: monospace; font-size: 0.82rem;
+      color: #e2e8f0; overflow-x: auto; margin-top: 14px; line-height: 1.7;
+      white-space: pre;
     }
-    .flow-step {
-      background: #1a202c; border: 1px solid #2d3748; border-radius: 10px;
-      padding: 14px 18px; font-size: 0.82rem; text-align: center;
-      min-width: 120px; flex: 1;
-    }
-    .flow-step .icon { font-size: 1.5rem; display: block; margin-bottom: 6px; }
-    .flow-step .label { font-weight: 600; color: #e2e8f0; }
-    .flow-step .sub   { color: #718096; font-size: 0.75rem; margin-top: 3px; }
-    .flow-arrow {
-      color: #4299e1; font-size: 1.3rem; padding: 0 4px; flex-shrink: 0;
-    }
+    .kw  { color: #9f7aea; }
+    .fn  { color: #68d391; }
+    .str { color: #f6ad55; }
+    .cmt { color: #4a5568; font-style: italic; }
+    .key { color: #63b3ed; }
 
-    /* ── Server warning ── */
-    .warning-box {
-      background: #1a202c; border: 1px solid #744210; border-radius: 10px;
-      padding: 18px 22px; margin-top: 16px;
+    /* ── Temperature cards ── */
+    .temp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+    .temp-card { background: #1a202c; border: 1px solid #2d3748; border-radius: 8px; padding: 14px 16px; }
+    .temp-card .range { font-family: monospace; font-size: 0.9rem; font-weight: 700; margin-bottom: 6px; }
+    .temp-card .range.low  { color: #63b3ed; }
+    .temp-card .range.mid  { color: #68d391; }
+    .temp-card .range.high { color: #f6ad55; }
+    .temp-card .label { font-size: 0.78rem; font-weight: 600; color: #a0aec0; margin-bottom: 8px; }
+    .temp-card ul { list-style: none; }
+    .temp-card ul li { font-size: 0.8rem; color: #718096; padding: 2px 0; }
+    .temp-card ul li::before { content: "• "; }
+
+    /* ── Streaming events ── */
+    .event-list { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+    .event-item {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 6px;
+      padding: 9px 14px; display: flex; gap: 14px; align-items: baseline;
     }
-    .warning-box .tag {
-      display: inline-block; background: #744210; color: #fbd38d;
+    .event-name { font-family: monospace; font-size: 0.82rem; color: #68d391; min-width: 180px; flex-shrink: 0; }
+    .event-desc { font-size: 0.82rem; color: #718096; }
+
+    /* ── Info box ── */
+    .info-box {
+      background: #1a202c; border: 1px solid #2a4a6a; border-radius: 10px;
+      padding: 16px 20px; margin-top: 14px;
+    }
+    .info-box .tag {
+      display: inline-block; background: #2a4a6a; color: #90cdf4;
       font-size: 0.72rem; font-weight: 700; padding: 2px 8px;
       border-radius: 4px; margin-bottom: 10px; letter-spacing: 0.05em;
     }
-    .warning-box ul { list-style: none; }
-    .warning-box ul li { color: #a0aec0; font-size: 0.9rem; padding: 3px 0; }
-    .warning-box ul li::before { content: "⚠ "; color: #f6ad55; }
+    .info-box p { color: #a0aec0; font-size: 0.88rem; margin: 0; }
 
     /* ── API Fields ── */
     .api-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
@@ -75,6 +90,25 @@
     }
     .field .name  { font-family: monospace; font-size: 0.85rem; color: #68d391; font-weight: 600; }
     .field .desc  { font-size: 0.82rem; color: #718096; margin-top: 4px; }
+
+    /* ── Response box ── */
+    .response-box {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 10px;
+      padding: 20px; margin-top: 16px;
+    }
+    .response-field { display: flex; gap: 16px; padding: 8px 0; border-bottom: 1px solid #2d3748; }
+    .response-field:last-child { border-bottom: none; }
+    .rf-key   { font-family: monospace; font-size: 0.82rem; color: #f6ad55; width: 120px; flex-shrink: 0; }
+    .rf-val   { font-size: 0.85rem; color: #a0aec0; }
+    .rf-val.text { color: #e2e8f0; }
+
+    /* ── Takeaway ── */
+    .takeaway {
+      background: linear-gradient(135deg, #1a2a1a, #1a202c);
+      border: 1px solid #276749; border-radius: 10px;
+      padding: 20px 24px; margin-top: 16px;
+    }
+    .takeaway p { color: #c6f6d5; font-size: 0.9rem; margin: 0; }
 
     /* ══════════════════════════════════
        INSIDE CLAUDE DEMO
@@ -183,89 +217,194 @@
     }
     .gen-stop-indicator.show { display: block; animation: fadeIn 0.4s; }
 
-    /* Controls */
+    /* Controls (shared) */
     .demo-controls { display: flex; gap: 10px; margin-top: 24px; flex-wrap: wrap; align-items: center; }
     .btn {
       padding: 9px 20px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
       cursor: pointer; border: none; transition: all 0.2s;
     }
     .btn-primary { background: #2b6cb0; color: #fff; }
-    .btn-primary:hover { background: #3182ce; }
+    .btn-primary:hover:not(:disabled) { background: #3182ce; }
     .btn-primary:disabled { background: #2d3748; color: #4a5568; cursor: default; }
     .btn-ghost { background: transparent; color: #718096; border: 1px solid #2d3748; }
-    .btn-ghost:hover { color: #e2e8f0; border-color: #4a5568; }
+    .btn-ghost:hover:not(:disabled) { color: #e2e8f0; border-color: #4a5568; }
+    .btn-ghost:disabled { opacity: 0.4; cursor: default; }
     .step-indicator { color: #718096; font-size: 0.82rem; margin-left: auto; }
 
-    /* Response section */
-    .response-box {
+    /* ══════════════════════════════════
+       API LIFECYCLE VISUALIZER
+    ══════════════════════════════════ */
+    #lifecycle-section {
+      background: #0d1117; border: 1px solid #2d3748; border-radius: 16px;
+      padding: 32px; margin-bottom: 52px;
+    }
+    #lifecycle-section h2 { margin-bottom: 8px; }
+    .lc-subtitle { color: #718096; font-size: 0.9rem; margin-bottom: 28px; }
+
+    /* flow diagram */
+    .lc-diagram {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0; overflow-x: auto; padding-bottom: 8px;
+    }
+    .lc-node {
+      display: flex; flex-direction: column; align-items: center;
+      min-width: 88px; flex-shrink: 0;
+    }
+    .lc-box {
+      width: 76px; height: 76px; border-radius: 14px;
+      border: 2px solid #2d3748; background: #1a202c;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 3px;
+      transition: all 0.35s ease; position: relative;
+    }
+    .lc-icon  { font-size: 1.5rem; }
+    .lc-label {
+      font-size: 0.68rem; font-weight: 600; color: #718096;
+      margin-top: 7px; text-align: center; line-height: 1.3;
+      transition: color 0.35s;
+    }
+    .lc-node.active .lc-box {
+      border-color: #4299e1; background: #1a2a3a;
+      box-shadow: 0 0 0 4px rgba(66,153,225,0.15), 0 0 20px rgba(66,153,225,0.18);
+    }
+    .lc-node.active .lc-label { color: #90cdf4; }
+    .lc-node.done .lc-box { border-color: #38a169; background: #1a2e22; }
+    .lc-node.done .lc-label { color: #68d391; }
+
+    /* key badge */
+    .lc-key-badge {
+      position: absolute; top: -8px; right: -8px;
+      background: #744210; border: 1px solid #975a16; border-radius: 50%;
+      width: 20px; height: 20px; font-size: 0.62rem;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0.4; transition: opacity 0.35s;
+    }
+    .lc-node.active .lc-key-badge,
+    .lc-node.done .lc-key-badge { opacity: 1; }
+
+    /* arrows */
+    .lc-arrow {
+      display: flex; flex-direction: column; align-items: center;
+      flex-shrink: 0; padding: 0 2px; margin-top: -18px;
+    }
+    .lc-arrow-step {
+      font-size: 0.63rem; color: #4a5568; margin-bottom: 4px;
+      font-weight: 700; letter-spacing: 0.04em; transition: color 0.35s;
+    }
+    .lc-arrow-line {
+      width: 44px; height: 2px; background: #2d3748;
+      position: relative; overflow: visible; transition: background 0.35s;
+    }
+    .lc-arrow-line::after {
+      content: ''; position: absolute; right: -6px; top: -4px;
+      border: 5px solid transparent; border-left-color: #2d3748;
+      transition: border-left-color 0.35s;
+    }
+    .lc-arrow.active .lc-arrow-line { background: #4299e1; }
+    .lc-arrow.active .lc-arrow-line::after { border-left-color: #4299e1; }
+    .lc-arrow.active .lc-arrow-step { color: #4299e1; }
+    .lc-arrow.done .lc-arrow-line { background: #38a169; }
+    .lc-arrow.done .lc-arrow-line::after { border-left-color: #38a169; }
+    .lc-arrow.done .lc-arrow-step { color: #68d391; }
+
+    /* packet */
+    .lc-packet {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: #4299e1; position: absolute; top: -4px; left: 0; opacity: 0;
+    }
+    .lc-arrow.animating .lc-packet {
+      animation: lcTravel 0.55s ease forwards;
+    }
+    @keyframes lcTravel {
+      0%   { left: 0;    opacity: 1; }
+      100% { left: 35px; opacity: 0; }
+    }
+
+    /* progress bar */
+    .lc-progress { height: 3px; background: #2d3748; border-radius: 2px; margin-top: 20px; }
+    .lc-progress-fill { height: 100%; background: #4299e1; border-radius: 2px; transition: width 0.4s ease; }
+
+    /* detail panel */
+    .lc-detail { margin-top: 28px; min-height: 240px; }
+    .lc-card { display: none; animation: fadeIn 0.3s ease; }
+    .lc-card.visible { display: block; }
+
+    .lc-card-header {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 18px;
+    }
+    .lc-step-num {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: #2b6cb0; color: #fff;
+      font-size: 0.82rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .lc-step-title { font-size: 1.05rem; font-weight: 600; color: #f7fafc; }
+    .lc-step-sub   { font-size: 0.8rem; color: #718096; margin-top: 1px; }
+
+    .lc-body { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 620px) { .lc-body { grid-template-columns: 1fr; } }
+
+    .lc-block {
       background: #1a202c; border: 1px solid #2d3748; border-radius: 10px;
-      padding: 20px; margin-top: 16px;
+      padding: 14px 16px;
     }
-    .response-field { display: flex; gap: 16px; padding: 8px 0; border-bottom: 1px solid #2d3748; }
-    .response-field:last-child { border-bottom: none; }
-    .rf-key   { font-family: monospace; font-size: 0.82rem; color: #f6ad55; width: 120px; flex-shrink: 0; }
-    .rf-val   { font-size: 0.85rem; color: #a0aec0; }
-    .rf-val.text { color: #e2e8f0; }
+    .lc-block-title {
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+      color: #4a5568; margin-bottom: 10px;
+    }
+    .lc-block p { color: #a0aec0; font-size: 0.83rem; margin-bottom: 5px; }
+    .lc-block p:last-child { margin-bottom: 0; }
 
-    /* Takeaway */
-    .takeaway {
-      background: linear-gradient(135deg, #1a2a1a, #1a202c);
-      border: 1px solid #276749; border-radius: 10px;
-      padding: 20px 24px; margin-top: 16px;
+    .lc-payload {
+      background: #0d1117; border: 1px solid #2d3748; border-radius: 7px;
+      padding: 11px 13px; font-family: monospace; font-size: 0.76rem;
+      line-height: 1.85; overflow-x: auto;
     }
-    .takeaway p { color: #c6f6d5; font-size: 0.9rem; margin: 0; }
+    .lc-k  { color: #63b3ed; }
+    .lc-s  { color: #68d391; }
+    .lc-sk { color: #f6ad55; }
+    .lc-d  { color: #4a5568; }
+    .lc-m  { color: #b794f4; }
+    .lc-n  { color: #fc8181; }
 
-    /* ── Code blocks ── */
-    .code-block {
-      background: #0d1117; border: 1px solid #2d3748; border-radius: 8px;
-      padding: 16px 18px; font-family: monospace; font-size: 0.82rem;
-      color: #e2e8f0; overflow-x: auto; margin-top: 14px; line-height: 1.7;
-      white-space: pre;
+    .lc-warn {
+      background: #1a1200; border: 1px solid #744210;
+      border-radius: 7px; padding: 10px 13px;
+      display: flex; gap: 9px; margin-top: 10px;
     }
-    .kw  { color: #9f7aea; }
-    .fn  { color: #68d391; }
-    .str { color: #f6ad55; }
-    .cmt { color: #4a5568; font-style: italic; }
-    .key { color: #63b3ed; }
+    .lc-warn p { color: #fbd38d; font-size: 0.8rem; margin: 0; }
 
-    /* ── Temperature cards ── */
-    .temp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
-    .temp-card { background: #1a202c; border: 1px solid #2d3748; border-radius: 8px; padding: 14px 16px; }
-    .temp-card .range { font-family: monospace; font-size: 0.9rem; font-weight: 700; margin-bottom: 6px; }
-    .temp-card .range.low  { color: #63b3ed; }
-    .temp-card .range.mid  { color: #68d391; }
-    .temp-card .range.high { color: #f6ad55; }
-    .temp-card .label { font-size: 0.78rem; font-weight: 600; color: #a0aec0; margin-bottom: 8px; }
-    .temp-card ul { list-style: none; }
-    .temp-card ul li { font-size: 0.8rem; color: #718096; padding: 2px 0; }
-    .temp-card ul li::before { content: "• "; }
+    .lc-ok {
+      background: #0d2318; border: 1px solid #276749;
+      border-radius: 7px; padding: 10px 13px;
+      display: flex; gap: 9px; margin-top: 10px;
+    }
+    .lc-ok p { color: #9ae6b4; font-size: 0.8rem; margin: 0; }
 
-    /* ── Streaming events ── */
-    .event-list { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
-    .event-item {
-      background: #1a202c; border: 1px solid #2d3748; border-radius: 6px;
-      padding: 9px 14px; display: flex; gap: 14px; align-items: baseline;
+    .lc-stages { display: flex; flex-direction: column; gap: 7px; margin-top: 4px; }
+    .lc-stage-pill {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 7px;
+      padding: 8px 12px; display: flex; align-items: center; gap: 9px;
     }
-    .event-name { font-family: monospace; font-size: 0.82rem; color: #68d391; min-width: 180px; flex-shrink: 0; }
-    .event-desc { font-size: 0.82rem; color: #718096; }
+    .lc-stage-n {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #2d3748; font-size: 0.68rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      color: #90cdf4; flex-shrink: 0;
+    }
+    .lc-stage-name { font-size: 0.8rem; font-weight: 600; color: #e2e8f0; }
+    .lc-stage-desc { font-size: 0.72rem; color: #718096; }
 
-    /* ── Info box (system prompt, prefill, etc.) ── */
-    .info-box {
-      background: #1a202c; border: 1px solid #2a4a6a; border-radius: 10px;
-      padding: 16px 20px; margin-top: 14px;
+    .lc-complete {
+      display: none; background: #0d2318; border: 1px solid #276749;
+      border-radius: 10px; padding: 18px 22px; text-align: center; margin-top: 18px;
+      animation: fadeIn 0.4s ease;
     }
-    .info-box .tag {
-      display: inline-block; background: #2a4a6a; color: #90cdf4;
-      font-size: 0.72rem; font-weight: 700; padding: 2px 8px;
-      border-radius: 4px; margin-bottom: 10px; letter-spacing: 0.05em;
-    }
-    .info-box p { color: #a0aec0; font-size: 0.88rem; margin: 0; }
+    .lc-complete.show { display: block; }
+    .lc-complete h3 { font-size: 1rem; color: #68d391; margin-bottom: 5px; }
+    .lc-complete p  { font-size: 0.83rem; color: #9ae6b4; margin: 0; }
 
     @media (max-width: 600px) {
-      .api-fields { grid-template-columns: 1fr; }
-      .flow-arrow { display: none; }
-      .flow { gap: 8px; }
-      .flow-step { min-width: 0; }
       .temp-grid { grid-template-columns: 1fr; }
     }
   </style>
@@ -279,52 +418,310 @@
 
 <main>
 
-  <!-- ── 1. Complete Request Flow ── -->
-  <section>
+  <!-- ══════════════════════════════════
+       1. API REQUEST LIFECYCLE — INTERACTIVE
+  ══════════════════════════════════ -->
+  <section id="lifecycle-section">
     <h2>The Complete Request Flow</h2>
-    <p>The journey from user input to AI response involves five distinct steps. Each plays a crucial role in delivering the response users expect.</p>
-    <div class="flow">
-      <div class="flow-step"><span class="icon">👤</span><div class="label">User Input</div><div class="sub">Client</div></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step"><span class="icon">🖥</span><div class="label">Your Server</div><div class="sub">Secure intermediary</div></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step"><span class="icon">🤖</span><div class="label">Claude API</div><div class="sub">Anthropic</div></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step"><span class="icon">🖥</span><div class="label">Your Server</div><div class="sub">Forward response</div></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step"><span class="icon">👤</span><div class="label">User Sees</div><div class="sub">Chat UI</div></div>
-    </div>
-  </section>
+    <div class="lc-subtitle">Step through the five stages that turn a user message into an AI response — and see exactly where the API key lives.</div>
 
-  <!-- ── 2. Why a Server ── -->
-  <section>
-    <h2>Why You Need a Server</h2>
-    <p>Never make API requests directly from client-side code.</p>
-    <div class="warning-box">
-      <div class="tag">SECURITY</div>
-      <ul>
-        <li>API requests require secret credentials that must stay secure</li>
-        <li>Exposing credentials in client code makes them visible to anyone</li>
-        <li>Your server acts as a secure intermediary between your app and AI</li>
-        <li>Always route requests through your own server that you control</li>
-      </ul>
-    </div>
-  </section>
+    <!-- Diagram -->
+    <div class="lc-diagram" id="lcDiagram">
 
-  <!-- ── 3. API Request Fields ── -->
-  <section>
-    <h2>Making the API Request</h2>
-    <p>Anthropic provides official SDKs for Python, TypeScript, Go, and Ruby. Every request must include these key fields:</p>
-    <div class="api-fields">
-      <div class="field"><div class="name">API Key</div><div class="desc">Identifies your request to Anthropic — keep it server-side only</div></div>
-      <div class="field"><div class="name">model</div><div class="desc">Name of the specific Claude model to use</div></div>
-      <div class="field"><div class="name">messages</div><div class="desc">List containing the user's input text in role/content format</div></div>
-      <div class="field"><div class="name">max_tokens</div><div class="desc">Limits how many tokens the model can generate</div></div>
+      <div class="lc-node" id="lc-node-0">
+        <div class="lc-box"><span class="lc-icon">💻</span></div>
+        <div class="lc-label">Client<br><span style="font-weight:400;color:#4a5568">Browser / App</span></div>
+      </div>
+
+      <div class="lc-arrow" id="lc-arrow-1">
+        <div class="lc-arrow-step">①</div>
+        <div class="lc-arrow-line"><div class="lc-packet"></div></div>
+      </div>
+
+      <div class="lc-node" id="lc-node-1">
+        <div class="lc-box">
+          <span class="lc-icon">🖥️</span>
+          <div class="lc-key-badge">🔑</div>
+        </div>
+        <div class="lc-label">Your Server<br><span style="font-weight:400;color:#4a5568">holds API key</span></div>
+      </div>
+
+      <div class="lc-arrow" id="lc-arrow-2">
+        <div class="lc-arrow-step">②</div>
+        <div class="lc-arrow-line"><div class="lc-packet"></div></div>
+      </div>
+
+      <div class="lc-node" id="lc-node-2">
+        <div class="lc-box"><span class="lc-icon">🤖</span></div>
+        <div class="lc-label">Claude API<br><span style="font-weight:400;color:#4a5568">Anthropic</span></div>
+      </div>
+
+      <div class="lc-arrow" id="lc-arrow-4">
+        <div class="lc-arrow-step">④</div>
+        <div class="lc-arrow-line"><div class="lc-packet"></div></div>
+      </div>
+
+      <div class="lc-node" id="lc-node-3">
+        <div class="lc-box">
+          <span class="lc-icon">🖥️</span>
+          <div class="lc-key-badge">🔑</div>
+        </div>
+        <div class="lc-label">Your Server<br><span style="font-weight:400;color:#4a5568">processes response</span></div>
+      </div>
+
+      <div class="lc-arrow" id="lc-arrow-5">
+        <div class="lc-arrow-step">⑤</div>
+        <div class="lc-arrow-line"><div class="lc-packet"></div></div>
+      </div>
+
+      <div class="lc-node" id="lc-node-4">
+        <div class="lc-box"><span class="lc-icon">💻</span></div>
+        <div class="lc-label">Client<br><span style="font-weight:400;color:#4a5568">shows reply</span></div>
+      </div>
+
     </div>
+
+    <!-- Progress -->
+    <div class="lc-progress">
+      <div class="lc-progress-fill" id="lcProgress" style="width:0%"></div>
+    </div>
+
+    <!-- Detail cards -->
+    <div class="lc-detail">
+
+      <!-- Card 0: intro -->
+      <div class="lc-card visible" id="lc-card-0">
+        <div class="lc-card-header">
+          <div class="lc-step-num" style="background:#2d3748;color:#a0aec0">→</div>
+          <div>
+            <div class="lc-step-title">The Complete Request Journey</div>
+            <div class="lc-step-sub">Click "Next Step" to walk through each stage</div>
+          </div>
+        </div>
+        <div class="lc-body">
+          <div class="lc-block">
+            <div class="lc-block-title">What you'll see</div>
+            <p>Five steps from user message to AI reply — each step shows exactly what data moves and what stays hidden.</p>
+            <p>Pay attention to where the API key appears. That's the key architectural lesson.</p>
+          </div>
+          <div class="lc-block">
+            <div class="lc-block-title">The actors</div>
+            <p>💻 <strong style="color:#e2e8f0">Client</strong> — your frontend (browser, mobile app)</p>
+            <p>🖥️ <strong style="color:#e2e8f0">Your Server</strong> — Flask, Node, etc. — you control this</p>
+            <p>🤖 <strong style="color:#e2e8f0">Claude API</strong> — Anthropic's model endpoint</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 1: Client → Server -->
+      <div class="lc-card" id="lc-card-1">
+        <div class="lc-card-header">
+          <div class="lc-step-num">1</div>
+          <div>
+            <div class="lc-step-title">Client → Your Server</div>
+            <div class="lc-step-sub">User sends a message to your backend</div>
+          </div>
+        </div>
+        <div class="lc-body">
+          <div class="lc-block">
+            <div class="lc-block-title">Payload sent</div>
+            <div class="lc-payload">
+<span class="lc-d">POST /chat HTTP/1.1</span>
+<span class="lc-d">Content-Type: application/json</span>
+
+{
+  <span class="lc-k">"message"</span>: <span class="lc-s">"What is quantum
+          computing?"</span>
+}</div>
+            <div class="lc-warn">
+              <span>🔒</span>
+              <p>No API key in this request. The client has no credentials — it only talks to <em>your</em> server.</p>
+            </div>
+          </div>
+          <div class="lc-block">
+            <div class="lc-block-title">What happens here</div>
+            <p>The user's input travels from their browser to your server over HTTPS.</p>
+            <p>Your server can validate, sanitize, and rate-limit the request before passing it on.</p>
+            <p>This layer is also where you'd authenticate the user — verify session tokens, check quotas, etc.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Server → Claude API -->
+      <div class="lc-card" id="lc-card-2">
+        <div class="lc-card-header">
+          <div class="lc-step-num">2</div>
+          <div>
+            <div class="lc-step-title">Your Server → Claude API</div>
+            <div class="lc-step-sub">Your server constructs and signs the real API request</div>
+          </div>
+        </div>
+        <div class="lc-body">
+          <div class="lc-block">
+            <div class="lc-block-title">Payload sent to Anthropic</div>
+            <div class="lc-payload">
+{
+  <span class="lc-k">"model"</span>:      <span class="lc-s">"claude-haiku-4-5"</span>,
+  <span class="lc-k">"max_tokens"</span>: <span class="lc-n">1024</span>,
+  <span class="lc-k">"messages"</span>: [{
+    <span class="lc-k">"role"</span>:    <span class="lc-s">"user"</span>,
+    <span class="lc-k">"content"</span>: <span class="lc-s">"What is quantum
+              computing?"</span>
+  }]
+}
+<span class="lc-d">Header: x-api-key: </span><span class="lc-sk">sk-ant-••••••••</span></div>
+          </div>
+          <div class="lc-block">
+            <div class="lc-block-title">Required fields</div>
+            <p><code style="color:#68d391">model</code> — which Claude variant to use</p>
+            <p><code style="color:#68d391">max_tokens</code> — hard cap on output length</p>
+            <p><code style="color:#68d391">messages</code> — the conversation as a list</p>
+            <p><code style="color:#f6ad55">x-api-key</code> — added by your server, never by the client</p>
+            <div class="lc-warn">
+              <span>🔑</span>
+              <p>The API key is read from an environment variable on your server. It never touches the client.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Processing -->
+      <div class="lc-card" id="lc-card-3">
+        <div class="lc-card-header">
+          <div class="lc-step-num">3</div>
+          <div>
+            <div class="lc-step-title">Model Processing (inside Claude)</div>
+            <div class="lc-step-sub">Four internal stages turn your text into a response</div>
+          </div>
+        </div>
+        <div class="lc-body">
+          <div class="lc-block" style="grid-column: 1 / -1;">
+            <div class="lc-block-title">Internal pipeline</div>
+            <div class="lc-stages">
+              <div class="lc-stage-pill">
+                <div class="lc-stage-n">1</div>
+                <div>
+                  <div class="lc-stage-name">Tokenization</div>
+                  <div class="lc-stage-desc">"What is quantum computing?" → [What] [is] [quantum] [computing] [?]</div>
+                </div>
+              </div>
+              <div class="lc-stage-pill">
+                <div class="lc-stage-n">2</div>
+                <div>
+                  <div class="lc-stage-name">Embedding</div>
+                  <div class="lc-stage-desc">Each token → a long list of numbers encoding all its possible meanings</div>
+                </div>
+              </div>
+              <div class="lc-stage-pill">
+                <div class="lc-stage-n">3</div>
+                <div>
+                  <div class="lc-stage-name">Contextualization</div>
+                  <div class="lc-stage-desc">"quantum" here means physics/computing — surrounding words clarify meaning</div>
+                </div>
+              </div>
+              <div class="lc-stage-pill">
+                <div class="lc-stage-n">4</div>
+                <div>
+                  <div class="lc-stage-name">Generation</div>
+                  <div class="lc-stage-desc">Picks next token by probability, appends it, repeats until stop condition</div>
+                </div>
+              </div>
+            </div>
+            <div class="lc-ok" style="margin-top:12px;">
+              <span>💡</span>
+              <p>See these four stages interactively in the <strong>Inside Claude</strong> section below.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: Claude → Server -->
+      <div class="lc-card" id="lc-card-4">
+        <div class="lc-card-header">
+          <div class="lc-step-num">4</div>
+          <div>
+            <div class="lc-step-title">Claude API → Your Server</div>
+            <div class="lc-step-sub">Claude returns the full response object</div>
+          </div>
+        </div>
+        <div class="lc-body">
+          <div class="lc-block">
+            <div class="lc-block-title">Response received</div>
+            <div class="lc-payload">
+{
+  <span class="lc-k">"content"</span>: [{
+    <span class="lc-k">"type"</span>: <span class="lc-s">"text"</span>,
+    <span class="lc-k">"text"</span>:  <span class="lc-s">"Quantum computing
+      is a type of..."</span>
+  }],
+  <span class="lc-k">"stop_reason"</span>: <span class="lc-s">"end_turn"</span>,
+  <span class="lc-k">"usage"</span>: {
+    <span class="lc-m">"input_tokens"</span>:  <span class="lc-n">16</span>,
+    <span class="lc-m">"output_tokens"</span>: <span class="lc-n">47</span>
+  }
+}</div>
+          </div>
+          <div class="lc-block">
+            <div class="lc-block-title">What the metadata tells you</div>
+            <p><code style="color:#68d391">stop_reason</code> — <code style="color:#a0aec0">end_turn</code>: natural finish; <code style="color:#a0aec0">max_tokens</code>: cut off</p>
+            <p><code style="color:#b794f4">input_tokens</code> — how many tokens your prompt consumed</p>
+            <p><code style="color:#b794f4">output_tokens</code> — tokens generated (drives cost)</p>
+            <p>Your server can log these for cost tracking or rate limiting before forwarding anything to the client.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 5: Server → Client -->
+      <div class="lc-card" id="lc-card-5">
+        <div class="lc-card-header">
+          <div class="lc-step-num">5</div>
+          <div>
+            <div class="lc-step-title">Your Server → Client</div>
+            <div class="lc-step-sub">Server forwards only what the client needs</div>
+          </div>
+        </div>
+        <div class="lc-body">
+          <div class="lc-block">
+            <div class="lc-block-title">Payload sent to client</div>
+            <div class="lc-payload">
+{
+  <span class="lc-k">"reply"</span>:        <span class="lc-s">"Quantum computing
+    is a type of..."</span>,
+  <span class="lc-k">"stop_reason"</span>:  <span class="lc-s">"end_turn"</span>,
+  <span class="lc-k">"input_tokens"</span>:  <span class="lc-n">16</span>,
+  <span class="lc-k">"output_tokens"</span>: <span class="lc-n">47</span>
+}</div>
+          </div>
+          <div class="lc-block">
+            <div class="lc-block-title">Your server's choices here</div>
+            <p>You decide what to expose. A minimal response sends only the text; a richer one includes stop reason and token counts.</p>
+            <p>Internal details — model name, raw API structure, billing identifiers — stay on the server.</p>
+            <div class="lc-ok">
+              <span>✅</span>
+              <p>The client never saw an API key, never knew which model was used, and never touched the Claude API directly. That's the point of the server layer.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /lc-detail -->
+
+    <div class="lc-complete" id="lcComplete">
+      <h3>Lifecycle complete</h3>
+      <p>User message in → AI response out. The API key stayed server-side the entire time.</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="demo-controls">
+      <button class="btn btn-ghost" id="lc-btn-prev" disabled onclick="lcNavigate(-1)">← Back</button>
+      <button class="btn btn-primary" id="lc-btn-next" onclick="lcNavigate(1)">Next Step →</button>
+      <span class="step-indicator" id="lc-indicator">Step 0 of 5</span>
+    </div>
+
   </section>
 
   <!-- ══════════════════════════════════
-       INSIDE CLAUDE — INTERACTIVE DEMO
+       2. INSIDE CLAUDE — INTERACTIVE DEMO
   ══════════════════════════════════ -->
   <section id="demo-section">
     <h2>Inside Claude: Text Generation Process</h2>
@@ -383,7 +780,7 @@
     </div>
   </section>
 
-  <!-- ── 4. The Response ── -->
+  <!-- ── 3. The Response ── -->
   <section>
     <h2>The Response</h2>
     <p>Once generation completes, Claude returns structured metadata alongside the text:</p>
@@ -407,7 +804,7 @@
     </div>
   </section>
 
-  <!-- ── 5. Key Takeaway ── -->
+  <!-- ── 4. Key Takeaway ── -->
   <section>
     <h2>The Complete Picture</h2>
     <p>This entire process — from user input through tokenization, embedding, contextualization, generation, and back to the user — happens in seconds.</p>
@@ -418,7 +815,7 @@
     </div>
   </section>
 
-  <!-- ── 6. Multi-turn Conversations ── -->
+  <!-- ── 5. Multi-turn Conversations ── -->
   <section>
     <h2>Multi-turn Conversations</h2>
     <p>Claude is stateless — it has no memory of previous requests. To build a conversation, your code must maintain a running message list and send the <em>complete history</em> on every request.</p>
@@ -450,7 +847,7 @@ messages = []
 )</pre>
   </section>
 
-  <!-- ── 7. Temperature ── -->
+  <!-- ── 6. Temperature ── -->
   <section>
     <h2>Temperature</h2>
     <p>Temperature is a decimal between <strong>0.0</strong> and <strong>1.0</strong> that controls how deterministic or creative Claude's word selection is. Low values favour the highest-probability token; high values introduce more randomness.</p>
@@ -488,7 +885,7 @@ messages = []
     </div>
   </section>
 
-  <!-- ── 8. Response Streaming ── -->
+  <!-- ── 7. Response Streaming ── -->
   <section>
     <h2>Response Streaming</h2>
     <p>By default, Claude sends the entire response at once — causing a noticeable wait. With streaming, Claude sends text chunks as they are generated, so users see output appear word by word.</p>
@@ -510,7 +907,7 @@ messages = []
     <p style="margin-top:10px">In production, forward <code style="color:#68d391">ContentBlockDelta</code> chunks to your client via <strong>WebSockets</strong> or <strong>Server-Sent Events (SSE)</strong>.</p>
   </section>
 
-  <!-- ── 9. Prefilled Assistant Messages ── -->
+  <!-- ── 8. Prefilled Assistant Messages ── -->
   <section>
     <h2>Prefilled Assistant Messages</h2>
     <p>You can seed the beginning of Claude's response by appending an <code style="color:#68d391">assistant</code> message to the conversation <em>before</em> calling the API. Claude continues from that starting point.</p>
@@ -527,7 +924,7 @@ response = client.messages.<span class="fn">create</span>(<span class="key">mode
     </div>
   </section>
 
-  <!-- ── 10. Stop Sequences ── -->
+  <!-- ── 9. Stop Sequences ── -->
   <section>
     <h2>Stop Sequences</h2>
     <p>A stop sequence forces Claude to halt generation the moment it produces a specific string. The sequence itself is <em>not</em> included in the output.</p>
@@ -544,7 +941,7 @@ response = client.messages.<span class="fn">create</span>(
     </div>
   </section>
 
-  <!-- ── 11. Structured Data ── -->
+  <!-- ── 10. Structured Data ── -->
   <section>
     <h2>Structured Data</h2>
     <p>Combining a prefilled assistant message with a stop sequence lets you extract clean, parseable output — no post-processing required.</p>
@@ -565,7 +962,7 @@ data = json.<span class="fn">loads</span>(raw)                   <span class="cm
     <p style="margin-top:10px">The prefill opens the code fence; the stop sequence closes it. Everything in between is guaranteed to be the JSON body.</p>
   </section>
 
-  <!-- ── 12. Provider Portability ── -->
+  <!-- ── 11. Provider Portability ── -->
   <section>
     <h2>Provider Portability and Local Models</h2>
     <p>When app developers move computation to local open-source models — Ollama, LM Studio, vLLM, llama.cpp — a practical question arises: does the code need to be rewritten?</p>
@@ -619,6 +1016,88 @@ client = <span class="fn">OpenAI</span>(
 
 <script>
 /* ═══════════════════════════════════
+   LIFECYCLE VISUALIZER
+═══════════════════════════════════ */
+const LC_TOTAL = 5;
+let lcStep = 0;
+
+const lcNodeMap = {
+  0: [],
+  1: ['lc-node-0', 'lc-node-1'],
+  2: ['lc-node-1', 'lc-node-2'],
+  3: ['lc-node-2'],
+  4: ['lc-node-2', 'lc-node-3'],
+  5: ['lc-node-3', 'lc-node-4'],
+};
+const lcArrowMap = {
+  0: [], 1: ['lc-arrow-1'], 2: ['lc-arrow-2'],
+  3: [], 4: ['lc-arrow-4'], 5: ['lc-arrow-5'],
+};
+const lcNodeDoneAt = {
+  'lc-node-0': 1, 'lc-node-1': 2, 'lc-node-2': 4,
+  'lc-node-3': 5, 'lc-node-4': 6,
+};
+const lcArrowDoneAt = {
+  'lc-arrow-1': 1, 'lc-arrow-2': 2, 'lc-arrow-4': 4, 'lc-arrow-5': 5,
+};
+
+function lcRender(step, dir) {
+  // cards
+  document.querySelectorAll('.lc-card').forEach(c => c.classList.remove('visible'));
+  const card = document.getElementById('lc-card-' + step);
+  if (card) card.classList.add('visible');
+
+  // nodes
+  Object.keys(lcNodeDoneAt).forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('active', 'done');
+    if ((lcNodeMap[step] || []).includes(id)) el.classList.add('active');
+    else if (step > lcNodeDoneAt[id] - 1) el.classList.add('done');
+  });
+
+  // arrows + packet
+  Object.keys(lcArrowDoneAt).forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('active', 'done', 'animating');
+    if ((lcArrowMap[step] || []).includes(id)) {
+      el.classList.add('active');
+      if (dir === 1) {
+        requestAnimationFrame(() => {
+          el.classList.add('animating');
+          el.addEventListener('animationend', () => el.classList.remove('animating'), { once: true });
+        });
+      }
+    } else if (lcArrowDoneAt[id] < step) {
+      el.classList.add('done');
+    }
+  });
+
+  // progress
+  document.getElementById('lcProgress').style.width = (step / LC_TOTAL * 100) + '%';
+  document.getElementById('lc-indicator').textContent = `Step ${step} of ${LC_TOTAL}`;
+
+  // buttons
+  document.getElementById('lc-btn-prev').disabled = step === 0;
+  document.getElementById('lc-btn-next').disabled = step === LC_TOTAL;
+  document.getElementById('lc-btn-next').textContent =
+    step === LC_TOTAL - 1 ? 'Final Step →' : 'Next Step →';
+
+  // complete
+  document.getElementById('lcComplete').classList.toggle('show', step === LC_TOTAL);
+}
+
+function lcNavigate(dir) {
+  const next = Math.max(0, Math.min(LC_TOTAL, lcStep + dir));
+  if (next === lcStep) return;
+  lcStep = next;
+  lcRender(lcStep, dir);
+}
+
+lcRender(0, 1);
+
+/* ═══════════════════════════════════
    DEMO DATA
 ═══════════════════════════════════ */
 const INPUT_WORDS = ["What", "is", "quantum", "computing", "?"];
@@ -668,105 +1147,24 @@ const CTX_DATA = [
 ];
 
 const GEN_STEPS = [
-  {
-    word: "Quantum",
-    probs: [
-      { word: "Quantum",   pct: 82, selected: true  },
-      { word: "It",        pct: 9,  selected: false },
-      { word: "Computing", pct: 5,  selected: false },
-      { word: "This",      pct: 4,  selected: false },
-    ]
-  },
-  {
-    word: "computing",
-    probs: [
-      { word: "computing", pct: 91, selected: true  },
-      { word: "mechanics", pct: 5,  selected: false },
-      { word: "physics",   pct: 4,  selected: false },
-    ]
-  },
-  {
-    word: "is",
-    probs: [
-      { word: "is",      pct: 78, selected: true  },
-      { word: "uses",    pct: 12, selected: false },
-      { word: "refers",  pct: 10, selected: false },
-    ]
-  },
-  {
-    word: "a",
-    probs: [
-      { word: "a",    pct: 70, selected: true  },
-      { word: "an",   pct: 22, selected: false },
-      { word: "the",  pct: 8,  selected: false },
-    ]
-  },
-  {
-    word: "type",
-    probs: [
-      { word: "type",       pct: 55, selected: true  },
-      { word: "paradigm",   pct: 24, selected: false },
-      { word: "form",       pct: 21, selected: false },
-    ]
-  },
-  {
-    word: "of",
-    probs: [
-      { word: "of",   pct: 97, selected: true  },
-      { word: "for",  pct: 3,  selected: false },
-    ]
-  },
-  {
-    word: "computation",
-    probs: [
-      { word: "computation", pct: 61, selected: true  },
-      { word: "computing",   pct: 27, selected: false },
-      { word: "processing",  pct: 12, selected: false },
-    ]
-  },
-  {
-    word: "that",
-    probs: [
-      { word: "that",  pct: 88, selected: true  },
-      { word: "which", pct: 12, selected: false },
-    ]
-  },
-  {
-    word: "harnesses",
-    probs: [
-      { word: "harnesses",  pct: 38, selected: true  },
-      { word: "uses",       pct: 35, selected: false },
-      { word: "leverages",  pct: 27, selected: false },
-    ]
-  },
-  {
-    word: "quantum",
-    probs: [
-      { word: "quantum",    pct: 94, selected: true  },
-      { word: "subatomic",  pct: 6,  selected: false },
-    ]
-  },
-  {
-    word: "mechanics.",
-    probs: [
-      { word: "mechanics.", pct: 73, selected: true  },
-      { word: "phenomena.", pct: 27, selected: false },
-    ]
-  },
-  {
-    word: "<EOS>",
-    probs: [
-      { word: "<EOS>",      pct: 88, selected: true  },
-      { word: "Unlike",     pct: 8,  selected: false },
-      { word: "It",         pct: 4,  selected: false },
-    ]
-  },
+  { word: "Quantum",     probs: [{ word: "Quantum",   pct: 82, selected: true }, { word: "It",        pct: 9,  selected: false }, { word: "Computing", pct: 5, selected: false }, { word: "This", pct: 4, selected: false }] },
+  { word: "computing",   probs: [{ word: "computing", pct: 91, selected: true }, { word: "mechanics", pct: 5,  selected: false }, { word: "physics",   pct: 4, selected: false }] },
+  { word: "is",          probs: [{ word: "is",        pct: 78, selected: true }, { word: "uses",      pct: 12, selected: false }, { word: "refers",    pct: 10, selected: false }] },
+  { word: "a",           probs: [{ word: "a",         pct: 70, selected: true }, { word: "an",        pct: 22, selected: false }, { word: "the",       pct: 8,  selected: false }] },
+  { word: "type",        probs: [{ word: "type",      pct: 55, selected: true }, { word: "paradigm",  pct: 24, selected: false }, { word: "form",      pct: 21, selected: false }] },
+  { word: "of",          probs: [{ word: "of",        pct: 97, selected: true }, { word: "for",       pct: 3,  selected: false }] },
+  { word: "computation", probs: [{ word: "computation", pct: 61, selected: true }, { word: "computing", pct: 27, selected: false }, { word: "processing", pct: 12, selected: false }] },
+  { word: "that",        probs: [{ word: "that",      pct: 88, selected: true }, { word: "which",     pct: 12, selected: false }] },
+  { word: "harnesses",   probs: [{ word: "harnesses", pct: 38, selected: true }, { word: "uses",      pct: 35, selected: false }, { word: "leverages", pct: 27, selected: false }] },
+  { word: "quantum",     probs: [{ word: "quantum",   pct: 94, selected: true }, { word: "subatomic", pct: 6,  selected: false }] },
+  { word: "mechanics.",  probs: [{ word: "mechanics.", pct: 73, selected: true }, { word: "phenomena.", pct: 27, selected: false }] },
+  { word: "<EOS>",       probs: [{ word: "<EOS>",     pct: 88, selected: true }, { word: "Unlike",    pct: 8,  selected: false }, { word: "It",        pct: 4,  selected: false }] },
 ];
 
 /* ═══════════════════════════════════
    STATE
 ═══════════════════════════════════ */
-let currentStage = 1; // 1–4
+let currentStage = 1;
 let stage1Done = false, stage2Done = false, stage3Done = false;
 let genStep = 0;
 let genRunning = false;
@@ -819,7 +1217,6 @@ function resetDemo() {
   currentStage = 1;
   stage1Done = stage2Done = stage3Done = false;
   genStep = 0; genRunning = false;
-  // Clear tokens
   document.getElementById("tokens-row").innerHTML = "";
   document.getElementById("token-count-note").textContent = "";
   document.getElementById("embed-grid").innerHTML = "";
@@ -923,7 +1320,6 @@ function renderProbBars(step) {
       <div class="prob-pct">${p.pct}%</div>`;
     container.appendChild(row);
   });
-  // animate bars
   requestAnimationFrame(() => {
     container.querySelectorAll(".prob-bar-fill").forEach(bar => {
       bar.style.width = bar.dataset.pct + "%";
@@ -936,7 +1332,6 @@ function runGenerationStep() {
   const step = GEN_STEPS[genStep];
 
   if (step.word === "<EOS>") {
-    // End of sequence
     renderProbBars(step);
     document.getElementById("gen-stop").classList.add("show");
     document.getElementById("btn-next").textContent = "Complete ✓";
@@ -945,7 +1340,6 @@ function runGenerationStep() {
     return;
   }
 
-  // Append word to output
   const output = document.getElementById("gen-output");
   const span = document.createElement("span");
   span.className = "gen-word-new";
