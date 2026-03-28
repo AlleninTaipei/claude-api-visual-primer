@@ -654,6 +654,199 @@
       font-size: 0.85rem; color: #e2e8f0; line-height: 1.75;
       min-height: 44px; font-family: monospace;
     }
+
+    /* ══════════════════════════════════
+       PREFILL VISUALIZER
+    ══════════════════════════════════ */
+    .pf-container {
+      background: #0d1117; border: 1px solid #2d3748; border-radius: 12px;
+      padding: 22px; margin: 20px 0;
+    }
+    .pf-chips {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 16px;
+    }
+    .pf-chip-label { font-size: 0.75rem; color: #718096; }
+    .pf-chip {
+      padding: 5px 12px; border-radius: 20px; font-size: 0.76rem; font-weight: 600;
+      cursor: pointer; border: 1px solid #2d3748; background: #1a202c; color: #718096;
+      transition: all 0.2s; font-family: monospace;
+    }
+    .pf-chip.active { background: #1c3a2a; border-color: #38a169; color: #68d391; }
+    .pf-chip:hover:not(.active) { border-color: #4a5568; color: #a0aec0; }
+    .pf-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 640px) { .pf-cols { grid-template-columns: 1fr; } }
+    .pf-panel {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 10px; overflow: hidden;
+    }
+    .pf-ph {
+      padding: 8px 14px; border-bottom: 1px solid #2d3748;
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.07em;
+      text-transform: uppercase; color: #4a5568;
+    }
+    .pf-code-body {
+      padding: 12px 14px; font-family: monospace; font-size: 0.73rem;
+      line-height: 1.9; white-space: pre; color: #a0aec0; overflow-x: auto;
+    }
+    .pf-out-body { padding: 14px 16px; }
+    .pf-badge-label {
+      font-size: 0.63rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 2px 7px; border-radius: 3px; display: inline-block; margin-bottom: 5px;
+    }
+    .pf-badge-seed { background: #1c3a2a; color: #68d391; }
+    .pf-badge-cont { background: #1a2a4a; color: #90cdf4; }
+    .pf-seed-text {
+      font-family: monospace; font-size: 0.82rem; color: #68d391;
+      margin-bottom: 10px; line-height: 1.5;
+    }
+    .pf-arrow-div { color: #4a5568; font-size: 0.78rem; margin-bottom: 8px; }
+    .pf-cont-text {
+      font-size: 0.83rem; color: #e2e8f0; line-height: 1.65;
+      min-height: 54px; transition: opacity 0.25s;
+    }
+
+    /* ══════════════════════════════════
+       STOP SEQUENCES VISUALIZER
+    ══════════════════════════════════ */
+    .ss-container {
+      background: #0d1117; border: 1px solid #2d3748; border-radius: 12px;
+      padding: 22px; margin: 20px 0;
+    }
+    .ss-scenarios { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+    .ss-scen-btn {
+      padding: 5px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 600;
+      cursor: pointer; border: 1px solid #2d3748; background: #1a202c; color: #718096;
+      transition: all 0.2s;
+    }
+    .ss-scen-btn.active { background: #1a2a4a; border-color: #4299e1; color: #90cdf4; }
+    .ss-setup {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 8px;
+      padding: 10px 14px; margin-bottom: 14px;
+      display: flex; gap: 24px; flex-wrap: wrap; align-items: center;
+    }
+    .ss-setup-item { display: flex; gap: 8px; align-items: baseline; }
+    .ss-setup-k {
+      font-size: 0.68rem; color: #4a5568; text-transform: uppercase;
+      letter-spacing: 0.06em; font-weight: 700; flex-shrink: 0;
+    }
+    .ss-setup-v { font-family: monospace; font-size: 0.8rem; color: #f6ad55; }
+    .ss-main { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 640px) { .ss-main { grid-template-columns: 1fr; } }
+    .ss-panel {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 8px; overflow: hidden;
+    }
+    .ss-panel-h {
+      padding: 7px 12px; border-bottom: 1px solid #2d3748;
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+    }
+    .ss-panel-h.full   { color: #718096; }
+    .ss-panel-h.output { color: #68d391; }
+    .ss-panel-body {
+      padding: 12px 14px; font-family: monospace; font-size: 0.82rem;
+      min-height: 64px; line-height: 1.7; white-space: pre-wrap; word-break: break-word;
+    }
+    .ss-tok-stop { color: #fc8181; text-decoration: line-through; }
+    .ss-halt-badge {
+      display: none; font-size: 0.7rem; font-weight: 700; color: #fc8181;
+      border: 1px solid #742929; border-radius: 4px; padding: 2px 7px;
+      margin-left: 6px; vertical-align: middle;
+    }
+    .ss-halt-badge.show { display: inline; animation: fadeIn 0.3s; }
+    .ss-desc-bar {
+      margin-top: 10px; padding: 10px 14px; background: #1a202c;
+      border: 1px solid #2d3748; border-radius: 7px;
+      font-size: 0.8rem; color: #a0aec0; min-height: 38px;
+    }
+    .ss-controls { display: flex; gap: 8px; margin-top: 12px; }
+
+    /* ══════════════════════════════════
+       STRUCTURED DATA VISUALIZER
+    ══════════════════════════════════ */
+    .sd-container {
+      background: #0d1117; border: 1px solid #2d3748; border-radius: 12px;
+      padding: 22px; margin: 20px 0;
+    }
+    .sd-steps { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+    .sd-step-btn {
+      padding: 5px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 600;
+      cursor: pointer; border: 1px solid #2d3748; background: #1a202c; color: #718096;
+      transition: all 0.2s;
+    }
+    .sd-step-btn.active { background: #2b6cb0; border-color: #4299e1; color: #fff; }
+    .sd-step-btn.done   { background: #276749; border-color: #38a169; color: #c6f6d5; }
+    .sd-stage { display: none; animation: fadeIn 0.3s ease; }
+    .sd-stage.visible { display: block; }
+    .sd-legend {
+      display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 10px;
+    }
+    .sd-legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; }
+    .sd-legend-dot { width: 9px; height: 9px; border-radius: 50%; }
+    .sd-assembly {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 8px;
+      padding: 12px 14px; font-family: monospace; font-size: 0.82rem;
+      line-height: 1.9; white-space: pre; overflow-x: auto; margin-bottom: 10px;
+    }
+    .sd-part-pre  { color: #63b3ed; }
+    .sd-part-gen  { color: #68d391; }
+    .sd-part-stop { color: #fc8181; text-decoration: line-through; }
+    .sd-comment   { color: #4a5568; }
+    .sd-result-box {
+      background: #0d2318; border: 1px solid #276749; border-radius: 8px; padding: 14px 16px;
+    }
+    .sd-result-label {
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #38a169; margin-bottom: 8px;
+    }
+    .sd-result-code { font-family: monospace; font-size: 0.82rem; color: #68d391; line-height: 1.7; white-space: pre; }
+    .sd-stage-desc { color: #a0aec0; font-size: 0.83rem; margin-top: 10px; }
+    .sd-nav { display: flex; gap: 8px; margin-top: 14px; align-items: center; }
+
+    /* ══════════════════════════════════
+       PROVIDER PORTABILITY VISUALIZER
+    ══════════════════════════════════ */
+    .pp-container {
+      background: #0d1117; border: 1px solid #2d3748; border-radius: 12px;
+      padding: 22px; margin: 20px 0;
+    }
+    .pp-sdk-tabs { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+    .pp-sdk-btn {
+      padding: 6px 16px; border-radius: 7px; font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; border: 1px solid #2d3748; background: #1a202c; color: #718096;
+      transition: all 0.2s;
+    }
+    .pp-sdk-btn.active { background: #2b6cb0; border-color: #4299e1; color: #fff; }
+    .pp-portability-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+      margin-bottom: 14px; letter-spacing: 0.03em;
+    }
+    .pp-portability-badge.portable { background: #1c3a2a; border: 1px solid #276749; color: #68d391; }
+    .pp-portability-badge.rewrite  { background: #2d1a1a; border: 1px solid #742929; color: #fc8181; }
+    .pp-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 640px) { .pp-cols { grid-template-columns: 1fr; } }
+    .pp-code-panel {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 10px; overflow: hidden;
+    }
+    .pp-code-header {
+      padding: 8px 14px; border-bottom: 1px solid #2d3748;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .pp-code-title {
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.07em;
+      text-transform: uppercase; color: #4a5568;
+    }
+    .pp-code-badge {
+      font-size: 0.65rem; padding: 2px 7px; border-radius: 3px; font-weight: 700;
+    }
+    .pp-code-badge.cloud     { background: #1a2a4a; color: #90cdf4; }
+    .pp-code-badge.local-ok  { background: #1c3a2a; color: #68d391; }
+    .pp-code-badge.local-err { background: #2d1a1a; color: #fc8181; }
+    .pp-code-body {
+      padding: 12px 14px; font-family: monospace; font-size: 0.73rem;
+      line-height: 1.85; white-space: pre; color: #a0aec0; overflow-x: auto; min-height: 100px;
+    }
+    .pp-changed { color: #68d391; }
+    .pp-cmt     { color: #4a5568; }
+    .pp-note    { color: #a0aec0; font-size: 0.83rem; margin-top: 12px; line-height: 1.6; }
   </style>
 </head>
 <body>
@@ -1251,23 +1444,78 @@ messages = []
   <section>
     <h2>Prefilled Assistant Messages</h2>
     <p>You can seed the beginning of Claude's response by appending an <code style="color:#68d391">assistant</code> message to the conversation <em>before</em> calling the API. Claude continues from that starting point.</p>
+
+    <div class="pf-container">
+      <div class="pf-chips">
+        <span class="pf-chip-label">Prefill text →</span>
+        <button class="pf-chip active" data-pf="0" onclick="pfSelect(0)">Coffee is better because</button>
+        <button class="pf-chip" data-pf="1" onclick="pfSelect(1)">Tea is better because</button>
+        <button class="pf-chip" data-pf="2" onclick="pfSelect(2)">Neither is very good because</button>
+        <button class="pf-chip" data-pf="3" onclick="pfSelect(3)">```json</button>
+      </div>
+      <div class="pf-cols">
+        <div class="pf-panel">
+          <div class="pf-ph">Messages Array Sent to API</div>
+          <div class="pf-code-body" id="pfCode"></div>
+        </div>
+        <div class="pf-panel">
+          <div class="pf-ph">Claude's Response</div>
+          <div class="pf-out-body">
+            <span class="pf-badge-label pf-badge-seed">Prefill (you set this)</span>
+            <div class="pf-seed-text" id="pfSeedText"></div>
+            <div class="pf-arrow-div">↓ Claude continues from here…</div>
+            <span class="pf-badge-label pf-badge-cont">Continuation (Claude generates)</span>
+            <div class="pf-cont-text" id="pfContText"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <pre class="code-block">messages = []
 messages.<span class="fn">append</span>({<span class="key">"role"</span>: <span class="str">"user"</span>,      <span class="key">"content"</span>: <span class="str">"Is tea or coffee better at breakfast?"</span>})
 messages.<span class="fn">append</span>({<span class="key">"role"</span>: <span class="str">"assistant"</span>, <span class="key">"content"</span>: <span class="str">"Coffee is better because"</span>})
 
 response = client.messages.<span class="fn">create</span>(<span class="key">model</span>=model, <span class="key">max_tokens</span>=<span class="str">300</span>, <span class="key">messages</span>=messages)</pre>
-    <div class="api-fields" style="margin-top:14px">
-      <div class="field"><div class="name">"Coffee is better because"</div><div class="desc">Steers Claude toward favouring coffee</div></div>
-      <div class="field"><div class="name">"Tea is better because"</div><div class="desc">Steers Claude toward favouring tea</div></div>
-      <div class="field"><div class="name">"Neither is very good because"</div><div class="desc">Forces a contrarian stance</div></div>
-      <div class="field"><div class="name">"```json"</div><div class="desc">Forces JSON output (see Structured Data)</div></div>
-    </div>
   </section>
 
   <!-- ── 9. Stop Sequences ── -->
   <section>
     <h2>Stop Sequences</h2>
     <p>A stop sequence forces Claude to halt generation the moment it produces a specific string. The sequence itself is <em>not</em> included in the output.</p>
+
+    <div class="ss-container">
+      <div class="ss-scenarios">
+        <button class="ss-scen-btn active" data-ss="0" onclick="ssSelect(0)">Count to 10</button>
+        <button class="ss-scen-btn" data-ss="1" onclick="ssSelect(1)">Numbered list</button>
+        <button class="ss-scen-btn" data-ss="2" onclick="ssSelect(2)">JSON fence</button>
+      </div>
+      <div class="ss-setup">
+        <div class="ss-setup-item">
+          <span class="ss-setup-k">prompt</span>
+          <span class="ss-setup-v" id="ssPrompt"></span>
+        </div>
+        <div class="ss-setup-item">
+          <span class="ss-setup-k">stop_sequences</span>
+          <span class="ss-setup-v" id="ssStopSeq"></span>
+        </div>
+      </div>
+      <div class="ss-main">
+        <div class="ss-panel">
+          <div class="ss-panel-h full">Full generation (no stop)</div>
+          <div class="ss-panel-body" id="ssFull"></div>
+        </div>
+        <div class="ss-panel">
+          <div class="ss-panel-h output">Actual output (stopped)</div>
+          <div class="ss-panel-body" id="ssOut"></div>
+        </div>
+      </div>
+      <div class="ss-controls">
+        <button class="btn btn-primary" id="ssPlayBtn" onclick="ssPlay()">▶ Animate</button>
+        <button class="btn btn-ghost" onclick="ssReset()">↺ Reset</button>
+      </div>
+      <div class="ss-desc-bar" id="ssDesc"></div>
+    </div>
+
     <pre class="code-block"><span class="cmt"># Stop before "5" is reached — output: "1, 2, 3, 4"</span>
 response = client.messages.<span class="fn">create</span>(
     <span class="key">model</span>=model,
@@ -1285,6 +1533,76 @@ response = client.messages.<span class="fn">create</span>(
   <section>
     <h2>Structured Data</h2>
     <p>Combining a prefilled assistant message with a stop sequence lets you extract clean, parseable output — no post-processing required.</p>
+
+    <div class="sd-container">
+      <div class="sd-steps">
+        <button class="sd-step-btn active" id="sdBtn0" onclick="sdGoTo(0)">① Prefill</button>
+        <button class="sd-step-btn" id="sdBtn1" onclick="sdGoTo(1)">② Generate</button>
+        <button class="sd-step-btn" id="sdBtn2" onclick="sdGoTo(2)">③ Stop fires</button>
+        <button class="sd-step-btn" id="sdBtn3" onclick="sdGoTo(3)">④ Clean result</button>
+      </div>
+
+      <!-- Stage 0: Prefill -->
+      <div class="sd-stage visible" id="sdStage0">
+        <div class="sd-legend">
+          <div class="sd-legend-item"><div class="sd-legend-dot" style="background:#63b3ed"></div><span style="color:#63b3ed">Prefill (you provide)</span></div>
+        </div>
+        <div class="sd-assembly"><span class="sd-part-pre">```json</span>  <span class="sd-comment">← assistant prefill — you set this</span></div>
+        <div class="sd-stage-desc">The assistant message is seeded with <code style="color:#63b3ed">```json</code>. Claude must continue from this point — meaning its very first token must be valid JSON content.</div>
+      </div>
+
+      <!-- Stage 1: Generate -->
+      <div class="sd-stage" id="sdStage1">
+        <div class="sd-legend">
+          <div class="sd-legend-item"><div class="sd-legend-dot" style="background:#63b3ed"></div><span style="color:#63b3ed">Prefill</span></div>
+          <div class="sd-legend-item"><div class="sd-legend-dot" style="background:#68d391"></div><span style="color:#68d391">Generated by Claude</span></div>
+        </div>
+        <div class="sd-assembly"><span class="sd-part-pre">```json</span>
+<span class="sd-part-gen">{
+  "source": "aws.s3",
+  "detail-type": "Object Created",
+  "detail": { "bucket": "my-bucket" }
+}</span></div>
+        <div class="sd-stage-desc">Claude fills in the JSON body, continuing naturally from the opened code fence.</div>
+      </div>
+
+      <!-- Stage 2: Stop fires -->
+      <div class="sd-stage" id="sdStage2">
+        <div class="sd-legend">
+          <div class="sd-legend-item"><div class="sd-legend-dot" style="background:#63b3ed"></div><span style="color:#63b3ed">Prefill</span></div>
+          <div class="sd-legend-item"><div class="sd-legend-dot" style="background:#68d391"></div><span style="color:#68d391">Generated</span></div>
+          <div class="sd-legend-item"><div class="sd-legend-dot" style="background:#fc8181"></div><span style="color:#fc8181">Stop sequence (excluded)</span></div>
+        </div>
+        <div class="sd-assembly"><span class="sd-part-pre">```json</span>
+<span class="sd-part-gen">{
+  "source": "aws.s3",
+  "detail-type": "Object Created",
+  "detail": { "bucket": "my-bucket" }
+}</span>
+<span class="sd-part-stop">```</span>  <span class="sd-comment">← stop_sequences=[&quot;```&quot;] fires — excluded from output</span></div>
+        <div class="sd-stage-desc">The moment Claude writes the closing <code style="color:#fc8181">```</code>, the stop sequence fires. Generation halts immediately and the fence is not included in the response.</div>
+      </div>
+
+      <!-- Stage 3: Clean result -->
+      <div class="sd-stage" id="sdStage3">
+        <div class="sd-result-box">
+          <div class="sd-result-label">response.content[0].text — ready for json.loads()</div>
+          <div class="sd-result-code">{
+  "source": "aws.s3",
+  "detail-type": "Object Created",
+  "detail": { "bucket": "my-bucket" }
+}</div>
+        </div>
+        <div class="sd-stage-desc">The response text is pure JSON — no opening fence, no closing fence, no extra prose. Pass it directly to <code style="color:#68d391">json.loads()</code>.</div>
+      </div>
+
+      <div class="sd-nav">
+        <button class="btn btn-ghost" id="sdPrev" onclick="sdNav(-1)" disabled>← Prev</button>
+        <button class="btn btn-primary" id="sdNext" onclick="sdNav(1)">Next →</button>
+        <span class="step-indicator" id="sdIndicator">Step 1 of 4</span>
+      </div>
+    </div>
+
     <pre class="code-block"><span class="kw">import</span> json
 
 messages = []
@@ -1305,46 +1623,33 @@ data = json.<span class="fn">loads</span>(raw)                   <span class="cm
   <!-- ── 11. Provider Portability ── -->
   <section>
     <h2>Provider Portability and Local Models</h2>
-    <p>When app developers move computation to local open-source models — Ollama, LM Studio, vLLM, llama.cpp — a practical question arises: does the code need to be rewritten?</p>
-    <p>The answer depends entirely on which SDK was used to build the app.</p>
+    <p>When app developers move computation to local open-source models — Ollama, LM Studio, vLLM, llama.cpp — a practical question arises: does the code need to be rewritten? The answer depends entirely on which SDK was used.</p>
 
-    <h3>OpenAI SDK: change <code>base_url</code>, nothing else</h3>
-    <p>The OpenAI API format has become the de facto standard for local model servers. Most local inference engines implement an OpenAI-compatible endpoint.</p>
-    <pre class="code-block"><span class="cmt"># Cloud (OpenAI)</span>
-client = <span class="fn">OpenAI</span>(<span class="key">api_key</span>=<span class="str">"sk-..."</span>)
-
-<span class="cmt"># Local — two-line change, all other code unchanged</span>
-client = <span class="fn">OpenAI</span>(
-    <span class="key">base_url</span>=<span class="str">"http://localhost:11434/v1"</span>,  <span class="cmt"># Ollama, LM Studio, vLLM, etc.</span>
-    <span class="key">api_key</span>=<span class="str">"local"</span>                        <span class="cmt"># required by SDK, not validated locally</span>
-)</pre>
-    <p><code>client.chat.completions.create(…)</code> calls, message format, and response parsing all stay the same. The SDK simply points at a different server.</p>
-
-    <h3>Anthropic and Google SDKs: rewrite required</h3>
-    <p>These SDKs communicate in their own protocol. Local model servers do not implement the Anthropic Messages API or the Google genai format. Switching requires either rewriting to the OpenAI SDK or introducing a proxy layer that translates (e.g., LiteLLM).</p>
-
-    <table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:0.92em">
-      <thead>
-        <tr style="background:#1e293b;color:#94a3b8;text-align:left">
-          <th style="padding:10px 14px;border-bottom:1px solid #334155">SDK</th>
-          <th style="padding:10px 14px;border-bottom:1px solid #334155">Local model portability</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr style="border-bottom:1px solid #1e293b">
-          <td style="padding:10px 14px;color:#e2e8f0">OpenAI SDK</td>
-          <td style="padding:10px 14px;color:#68d391">Change <code>base_url</code> only</td>
-        </tr>
-        <tr style="border-bottom:1px solid #1e293b">
-          <td style="padding:10px 14px;color:#e2e8f0">Anthropic SDK</td>
-          <td style="padding:10px 14px;color:#fc8181">Rewrite required</td>
-        </tr>
-        <tr>
-          <td style="padding:10px 14px;color:#e2e8f0">Google genai SDK</td>
-          <td style="padding:10px 14px;color:#fc8181">Rewrite required</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="pp-container">
+      <div class="pp-sdk-tabs">
+        <button class="pp-sdk-btn active" data-pp="openai"    onclick="ppSelect('openai')">OpenAI SDK</button>
+        <button class="pp-sdk-btn"         data-pp="anthropic" onclick="ppSelect('anthropic')">Anthropic SDK</button>
+        <button class="pp-sdk-btn"         data-pp="google"    onclick="ppSelect('google')">Google genai SDK</button>
+      </div>
+      <div id="ppBadge"></div>
+      <div class="pp-cols">
+        <div class="pp-code-panel">
+          <div class="pp-code-header">
+            <span class="pp-code-title">Cloud</span>
+            <span class="pp-code-badge cloud">production</span>
+          </div>
+          <div class="pp-code-body" id="ppCloudCode"></div>
+        </div>
+        <div class="pp-code-panel">
+          <div class="pp-code-header">
+            <span class="pp-code-title">Local model (Ollama / vLLM / etc.)</span>
+            <span class="pp-code-badge" id="ppLocalBadge">local</span>
+          </div>
+          <div class="pp-code-body" id="ppLocalCode"></div>
+        </div>
+      </div>
+      <p class="pp-note" id="ppNote"></p>
+    </div>
 
     <div class="info-box">
       <div class="tag">ARCHITECTURAL TAKEAWAY</div>
@@ -1999,6 +2304,320 @@ function svReset() {
 }
 
 svBuildLog();
+
+/* ═══════════════════════════════════
+   PREFILL VISUALIZER
+═══════════════════════════════════ */
+const PF_OPTIONS = [
+  {
+    label: 'Coffee is better because',
+    continuation: 'it provides a stronger, faster caffeine hit and a richer flavour profile. The ritual of espresso-based drinks also adds a social dimension that tea rarely matches.',
+  },
+  {
+    label: 'Tea is better because',
+    continuation: 'it offers a gentler, more sustained energy lift without the jitteriness of coffee. The sheer variety — green, oolong, black, herbal — means there is always a perfect cup for any mood.',
+  },
+  {
+    label: 'Neither is very good because',
+    continuation: 'both contain stimulants that can disrupt sleep and elevate cortisol levels. A glass of water or fresh-pressed juice is the optimal morning beverage for most people.',
+  },
+  {
+    label: '```json',
+    continuation: '{\n  "recommendation": "coffee",\n  "reason": "stronger caffeine content",\n  "alternatives": ["tea", "matcha"]\n}',
+  },
+];
+
+let pfCurrent = 0;
+
+function pfRender() {
+  const opt = PF_OPTIONS[pfCurrent];
+  const label = opt.label.replace(/</g, '&lt;').replace(/`/g, '&#96;');
+  document.getElementById('pfCode').innerHTML =
+    `<span style="color:#4a5568"># messages sent to API</span>\n` +
+    `[\n` +
+    `  { <span style="color:#63b3ed">"role"</span>: <span style="color:#f6ad55">"user"</span>,\n` +
+    `    <span style="color:#63b3ed">"content"</span>: <span style="color:#f6ad55">"Is tea or coffee better?"</span> },\n` +
+    `  { <span style="color:#63b3ed">"role"</span>: <span style="color:#68d391">"assistant"</span>,\n` +
+    `    <span style="color:#63b3ed">"content"</span>: <span style="color:#68d391">"${label}"</span> }  <span style="color:#4a5568">← prefill</span>\n` +
+    `]`;
+  document.getElementById('pfSeedText').textContent = opt.label;
+  const cont = document.getElementById('pfContText');
+  cont.style.opacity = '0';
+  setTimeout(() => {
+    cont.textContent = opt.continuation;
+    cont.style.opacity = '1';
+  }, 150);
+}
+
+function pfSelect(idx) {
+  pfCurrent = idx;
+  document.querySelectorAll('.pf-chip').forEach((b, i) =>
+    b.classList.toggle('active', i === idx));
+  pfRender();
+}
+
+pfRender();
+
+/* ═══════════════════════════════════
+   STOP SEQUENCES VISUALIZER
+═══════════════════════════════════ */
+const SS_SCENARIOS = [
+  {
+    name: 'Count to 10',
+    prompt: '"Count from 1 to 10"',
+    stop: '[", 5"]',
+    // Each segment: { text, isStop }
+    segments: [
+      { t:'1',    stop:false },
+      { t:', 2',  stop:false },
+      { t:', 3',  stop:false },
+      { t:', 4',  stop:false },
+      { t:', 5',  stop:true  },
+      { t:', 6',  stop:false },
+      { t:', 7',  stop:false },
+      { t:', 8',  stop:false },
+      { t:', 9',  stop:false },
+      { t:', 10', stop:false },
+    ],
+    desc: 'Claude produces "1, 2, 3, 4" and then generates ", 5" — matching the stop sequence. Generation halts immediately; ", 5" is excluded from the final output.',
+  },
+  {
+    name: 'Numbered list',
+    prompt: '"List 3 items then add a note"',
+    stop: '["\nNote:"]',
+    segments: [
+      { t:'1. Install dependencies',     stop:false },
+      { t:'\n2. Configure environment',  stop:false },
+      { t:'\n3. Run the tests',          stop:false },
+      { t:'\nNote:',                     stop:true  },
+      { t:' always back up first.',      stop:false },
+    ],
+    desc: 'The stop sequence "\\nNote:" captures only the numbered items. The disclaimer note is never included in the output — useful for extracting structured lists without trailing prose.',
+  },
+  {
+    name: 'JSON fence',
+    prompt: '"Generate an EventBridge rule as JSON" + prefill: "```json"',
+    stop: '["```"]',
+    segments: [
+      { t:'{\n  "source": "aws.s3",',                    stop:false },
+      { t:'\n  "detail-type": "Object Created",',         stop:false },
+      { t:'\n  "detail": { "bucket": "my-bucket" }\n}',   stop:false },
+      { t:'\n```',                                        stop:true  },
+    ],
+    desc: 'With the prefill "```json" already set, the closing fence "```" acts as the stop sequence. The response text is pure JSON — no fences, ready for json.loads().',
+  },
+];
+
+let ssCurrent  = 0;
+let ssTimer    = null;
+let ssSegIdx   = 0;
+let ssRunning  = false;
+
+function ssSelect(idx) {
+  if (ssRunning) ssReset();
+  ssCurrent = idx;
+  document.querySelectorAll('.ss-scen-btn').forEach((b, i) =>
+    b.classList.toggle('active', i === idx));
+  ssRenderSetup();
+  ssReset();
+}
+
+function ssRenderSetup() {
+  const s = SS_SCENARIOS[ssCurrent];
+  document.getElementById('ssPrompt').textContent  = s.prompt;
+  document.getElementById('ssStopSeq').textContent = s.stop;
+  document.getElementById('ssDesc').textContent    = s.desc;
+}
+
+function ssPlay() {
+  if (ssRunning) return;
+  ssRunning = true;
+  document.getElementById('ssPlayBtn').disabled = true;
+  ssAnimate();
+}
+
+function ssAnimate() {
+  const s = SS_SCENARIOS[ssCurrent];
+  if (ssSegIdx >= s.segments.length) {
+    ssRunning = false;
+    return;
+  }
+  const seg  = s.segments[ssSegIdx];
+  const full = document.getElementById('ssFull');
+  const out  = document.getElementById('ssOut');
+
+  if (seg.stop) {
+    // Show stop token in red in full panel
+    const span = document.createElement('span');
+    span.className = 'ss-tok-stop';
+    span.textContent = seg.t;
+    full.appendChild(span);
+    // Show halt badge
+    const badge = document.createElement('span');
+    badge.className = 'ss-halt-badge show';
+    badge.textContent = '⛔ HALTED';
+    full.appendChild(badge);
+    ssRunning = false;
+    ssSegIdx++;
+    return; // done — remaining segments after stop are never added
+  }
+
+  // Add to full panel
+  const sp1 = document.createElement('span');
+  sp1.textContent = seg.t;
+  full.appendChild(sp1);
+
+  // Add to output panel only if we haven't hit stop yet
+  const sp2 = document.createElement('span');
+  sp2.textContent = seg.t;
+  out.appendChild(sp2);
+
+  ssSegIdx++;
+  // Check if next segment is the stop — add all non-stop segs before stopping
+  ssTimer = setTimeout(ssAnimate, 380);
+}
+
+function ssReset() {
+  clearTimeout(ssTimer);
+  ssRunning  = false;
+  ssSegIdx   = 0;
+  document.getElementById('ssFull').innerHTML = '';
+  document.getElementById('ssOut').innerHTML  = '';
+  document.getElementById('ssPlayBtn').disabled = false;
+}
+
+ssRenderSetup();
+ssReset();
+
+/* ═══════════════════════════════════
+   STRUCTURED DATA VISUALIZER
+═══════════════════════════════════ */
+let sdStep    = 0;
+const SD_MAX  = 3;
+
+function sdGoTo(n) {
+  sdStep = Math.max(0, Math.min(SD_MAX, n));
+  document.querySelectorAll('.sd-stage').forEach((el, i) =>
+    el.classList.toggle('visible', i === sdStep));
+  document.querySelectorAll('.sd-step-btn').forEach((b, i) => {
+    b.classList.remove('active', 'done');
+    if (i === sdStep) b.classList.add('active');
+    else if (i < sdStep) b.classList.add('done');
+  });
+  document.getElementById('sdPrev').disabled = sdStep === 0;
+  document.getElementById('sdNext').disabled = sdStep === SD_MAX;
+  document.getElementById('sdNext').textContent = sdStep === SD_MAX ? 'Done ✓' : 'Next →';
+  document.getElementById('sdIndicator').textContent = `Step ${sdStep + 1} of ${SD_MAX + 1}`;
+}
+
+function sdNav(dir) { sdGoTo(sdStep + dir); }
+
+sdGoTo(0);
+
+/* ═══════════════════════════════════
+   PROVIDER PORTABILITY VISUALIZER
+═══════════════════════════════════ */
+const PP_SDKS = {
+  openai: {
+    portable:   true,
+    badgeText:  '✓ Portable — change 2 lines only',
+    localBadge: 'local-ok',
+    localLabel: 'local',
+    cloud: `client = OpenAI(api_key="sk-...")
+
+# All calls unchanged:
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[...]
+)`,
+    local: `client = OpenAI(
+    base_url="http://localhost:11434/v1",
+    api_key="local"
+)
+
+# All calls unchanged:
+response = client.chat.completions.create(
+    model="llama3.2",
+    messages=[...]
+)`,
+    note: 'Only <code style="color:#68d391">base_url</code> and <code style="color:#68d391">api_key</code> change. Every <code style="color:#68d391">client.chat.completions.create(…)</code> call, message format, and response parsing stays identical. This works because local inference servers (Ollama, vLLM, LM Studio, llama.cpp) all implement an OpenAI-compatible endpoint.',
+  },
+  anthropic: {
+    portable:   false,
+    badgeText:  '✗ Rewrite required',
+    localBadge: 'local-err',
+    localLabel: 'rewrite',
+    cloud: `client = anthropic.Anthropic(
+    api_key="sk-ant-..."
+)
+
+response = client.messages.create(
+    model="claude-haiku-4-5",
+    messages=[...]
+)`,
+    local: `# Anthropic Messages API is not
+# implemented by local servers.
+# Full rewrite to OpenAI SDK:
+
+client = OpenAI(
+    base_url="http://localhost:11434/v1",
+    api_key="local"
+)
+response = client.chat.completions.create(
+    model="llama3.2", messages=[...]
+)`,
+    note: 'The Anthropic SDK uses a proprietary wire protocol (Messages API). Local inference servers implement the OpenAI-compatible endpoint only. Switching requires either rewriting to the OpenAI SDK or introducing a proxy layer such as LiteLLM.',
+  },
+  google: {
+    portable:   false,
+    badgeText:  '✗ Rewrite required',
+    localBadge: 'local-err',
+    localLabel: 'rewrite',
+    cloud: `client = genai.Client(
+    api_key="AI..."
+)
+
+response = client.models.generate_content(
+    model="gemini-2.0-flash",
+    contents=[...]
+)`,
+    local: `# Google genai protocol is not
+# supported by local servers.
+# Full rewrite to OpenAI SDK:
+
+client = OpenAI(
+    base_url="http://localhost:11434/v1",
+    api_key="local"
+)
+response = client.chat.completions.create(
+    model="llama3.2", messages=[...]
+)`,
+    note: 'The Google genai SDK uses its own RPC-based format. Like the Anthropic SDK, it is incompatible with local inference servers. Switching to a local model requires rewriting to the OpenAI-compatible interface.',
+  },
+};
+
+let ppCurrent = 'openai';
+
+function ppSelect(sdk) {
+  ppCurrent = sdk;
+  document.querySelectorAll('.pp-sdk-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.pp === sdk));
+  ppRender();
+}
+
+function ppRender() {
+  const d = PP_SDKS[ppCurrent];
+  document.getElementById('ppBadge').innerHTML =
+    `<div class="pp-portability-badge ${d.portable ? 'portable' : 'rewrite'}">${d.badgeText}</div>`;
+  document.getElementById('ppCloudCode').textContent = d.cloud;
+  document.getElementById('ppLocalCode').textContent = d.local;
+  const lb = document.getElementById('ppLocalBadge');
+  lb.className = `pp-code-badge ${d.localBadge}`;
+  lb.textContent = d.localLabel;
+  document.getElementById('ppNote').innerHTML = d.note;
+}
+
+ppRender();
 
 /* ── Init ── */
 showStage(1);
