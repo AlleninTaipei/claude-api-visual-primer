@@ -847,6 +847,87 @@
     .pp-changed { color: #68d391; }
     .pp-cmt     { color: #4a5568; }
     .pp-note    { color: #a0aec0; font-size: 0.83rem; margin-top: 12px; line-height: 1.6; }
+
+    /* ══════════════════════════════════
+       TOOL USE VISUALIZER
+    ══════════════════════════════════ */
+    .tu-wrap {
+      background: #0d1117; border: 1px solid #2d3748; border-radius: 12px;
+      padding: 24px; margin: 20px 0;
+    }
+    .tu-tabs { display: flex; gap: 6px; margin-bottom: 22px; flex-wrap: wrap; }
+    .tu-tab {
+      padding: 6px 13px; border-radius: 20px; font-size: 0.77rem; font-weight: 600;
+      cursor: pointer; border: 1px solid #2d3748; background: #1a202c; color: #718096;
+      transition: all 0.2s; white-space: nowrap;
+    }
+    .tu-tab.active { background: #553c9a; border-color: #9f7aea; color: #e9d8fd; }
+    .tu-tab.done   { background: #276749; border-color: #48bb78; color: #c6f6d5; }
+    .tu-panel { display: none; }
+    .tu-panel.visible { display: block; animation: fadeIn 0.3s ease; }
+    .tu-desc {
+      border-left: 3px solid #9f7aea; padding: 9px 14px;
+      margin-bottom: 16px; font-size: 0.85rem; color: #a0aec0; line-height: 1.6;
+    }
+    .tu-desc strong { color: #e2e8f0; }
+    .tu-desc code { color: #f6ad55; font-family: monospace; font-size: 0.82rem; }
+    .tu-schema-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin: 12px 0; }
+    @media (max-width: 600px) { .tu-schema-row { grid-template-columns: 1fr; } }
+    .tu-schema-card {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 8px; padding: 12px 14px;
+    }
+    .tu-sc-name { font-family: monospace; font-size: 0.82rem; color: #f6ad55; font-weight: 600; margin-bottom: 4px; }
+    .tu-sc-desc { font-size: 0.78rem; color: #718096; line-height: 1.5; }
+    .tu-history { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+    .tu-history-label {
+      font-size: 0.7rem; color: #4a5568; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 2px;
+    }
+    .tu-msg {
+      border-radius: 8px; overflow: hidden; border: 1px solid #2d3748;
+      opacity: 0; transform: translateY(6px); transition: opacity 0.4s, transform 0.4s;
+    }
+    .tu-msg.show { opacity: 1; transform: none; }
+    .tu-msg.role-user      { border-color: #2b6cb0; }
+    .tu-msg.role-assistant { border-color: #553c9a; }
+    .tu-msg-hdr {
+      padding: 5px 12px; font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 0.07em; text-transform: uppercase;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .tu-msg.role-user      .tu-msg-hdr { background: #1a2a4a; color: #90cdf4; }
+    .tu-msg.role-assistant .tu-msg-hdr { background: #2d1a4a; color: #d6bcfa; }
+    .tu-msg-body { padding: 8px 12px; display: flex; flex-direction: column; gap: 5px; }
+    .tu-blk {
+      font-family: monospace; font-size: 0.77rem; line-height: 1.65;
+      background: #12171f; border: 1px solid #2d3748; border-radius: 5px; padding: 7px 10px;
+    }
+    .tu-blk-hdr { display: flex; align-items: center; gap: 7px; margin-bottom: 4px; }
+    .tu-badge {
+      font-size: 0.62rem; padding: 1px 7px; border-radius: 3px;
+      font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .tu-badge-text        { background: #1a2a4a; color: #90cdf4; }
+    .tu-badge-tool-use    { background: #3d2800; color: #f6ad55; }
+    .tu-badge-tool-result { background: #1c3a2a; color: #68d391; }
+    .tu-k  { color: #63b3ed; }
+    .tu-s  { color: #f6ad55; }
+    .tu-id { color: #b794f4; }
+    .tu-fn { color: #68d391; }
+    .tu-c  { color: #4a5568; font-style: italic; }
+    .tu-stop-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+    .tu-stop-lbl { font-size: 0.78rem; color: #718096; }
+    .tu-stop-badge {
+      font-family: monospace; font-size: 0.72rem; padding: 2px 9px;
+      border-radius: 3px; font-weight: 700;
+    }
+    .tu-stop-badge.tool-use { background: #3d2800; color: #f6ad55; border: 1px solid #744210; }
+    .tu-stop-badge.end-turn { background: #1c3a2a; color: #68d391; border: 1px solid #276749; }
+    .tu-loop-note {
+      margin-top: 12px; background: #1c2a1c; border: 1px solid #276749;
+      border-radius: 7px; padding: 10px 14px; font-size: 0.82rem; color: #68d391; line-height: 1.6;
+    }
+    .tu-loop-note strong { color: #9ae6b4; }
   </style>
 </head>
 <body>
@@ -854,6 +935,7 @@
 <header>
   <h1>Building with the Claude API</h1>
   <p>Understanding the complete request lifecycle when building applications with Claude.</p>
+  <p style="margin-top:10px; font-size:0.85rem; color:#4a5568;">Reference: <a href="https://www.anthropic.com/learn" target="_blank" rel="noopener" style="color:#63b3ed; text-decoration:none;">anthropic.com/learn</a></p>
 </header>
 
 <main>
@@ -1655,6 +1737,226 @@ data = json.<span class="fn">loads</span>(raw)                   <span class="cm
       <div class="tag">ARCHITECTURAL TAKEAWAY</div>
       <p>If compute portability matters to your app, build against the OpenAI SDK format from the start — even when routing to Claude or Gemini via a proxy. This keeps the cost of changing compute providers as low as possible.</p>
     </div>
+  </section>
+
+  <!-- ── 12. Tool Use ── -->
+  <section>
+    <h2>Tool Use (Function Calling)</h2>
+    <p>Tool use lets Claude call functions you define. Claude decides when a tool is needed, returns a structured <code style="color:#f6ad55;font-family:monospace">tool_use</code> block, and waits for your code to execute the function and return the result before generating its final answer.</p>
+
+    <div class="tu-wrap">
+      <div class="tu-tabs" id="tuTabs">
+        <div class="tu-tab active" onclick="tuGoTo(0)">1 · Define Tool</div>
+        <div class="tu-tab" onclick="tuGoTo(1)">2 · Send Request</div>
+        <div class="tu-tab" onclick="tuGoTo(2)">3 · Tool Response</div>
+        <div class="tu-tab" onclick="tuGoTo(3)">4 · Execute &amp; Return</div>
+        <div class="tu-tab" onclick="tuGoTo(4)">5 · Final Answer</div>
+      </div>
+
+      <!-- ── Panel 0: Define Tool ── -->
+      <div class="tu-panel visible" id="tu-p0">
+        <div class="tu-desc">A <strong>tool schema</strong> tells Claude what a function does, when to call it, and what arguments it expects. Claude reads the <code>description</code> to decide when to invoke the tool — write it like documentation for a smart colleague.</div>
+        <div class="tu-schema-row">
+          <div class="tu-schema-card">
+            <div class="tu-sc-name">name</div>
+            <div class="tu-sc-desc">The function name in snake_case. Claude uses this exact string when requesting a call.</div>
+          </div>
+          <div class="tu-schema-card">
+            <div class="tu-sc-name">description</div>
+            <div class="tu-sc-desc">What the tool does, when to use it, and what it returns. Aim for 3–4 sentences — this is Claude's primary signal.</div>
+          </div>
+          <div class="tu-schema-card">
+            <div class="tu-sc-name">input_schema</div>
+            <div class="tu-sc-desc">A JSON Schema object describing the arguments. Each property should have its own description too.</div>
+          </div>
+        </div>
+        <pre class="code-block"><span class="key">get_current_datetime_schema</span> = {
+  <span class="str">"name"</span>:        <span class="str">"get_current_datetime"</span>,
+  <span class="str">"description"</span>: <span class="str">"Returns the current date and time in the requested
+                  format. Use this when the user asks what time or
+                  date it is."</span>,
+  <span class="str">"input_schema"</span>: {
+    <span class="str">"type"</span>:       <span class="str">"object"</span>,
+    <span class="str">"properties"</span>: {
+      <span class="str">"format"</span>: {
+        <span class="str">"type"</span>:        <span class="str">"string"</span>,
+        <span class="str">"description"</span>: <span class="str">"strftime format string, e.g. '%H:%M:%S'"</span>
+      }
+    },
+    <span class="str">"required"</span>: [<span class="str">"format"</span>]
+  }
+}</pre>
+      </div>
+
+      <!-- ── Panel 1: Send Request ── -->
+      <div class="tu-panel" id="tu-p1">
+        <div class="tu-desc">Include the <strong>tools</strong> parameter in your API call. Claude now knows which functions are available and will invoke them whenever it determines the user's request requires external data.</div>
+        <pre class="code-block">response = client.messages.<span class="fn">create</span>(
+    <span class="key">model</span>=model,
+    <span class="key">max_tokens</span>=<span class="str">1000</span>,
+    <span class="key">messages</span>=messages,
+    <span class="key">tools</span>=[get_current_datetime_schema],  <span class="cmt"># ← tool list</span>
+)</pre>
+        <div class="tu-history">
+          <div class="tu-history-label">messages[ ] — current state</div>
+          <div class="tu-msg role-user show">
+            <div class="tu-msg-hdr">
+              <span>role: "user"</span>
+              <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.7rem">messages[0]</span>
+            </div>
+            <div class="tu-msg-body">
+              <div class="tu-blk">
+                <span class="tu-k">content:</span> <span class="tu-s">"What is the exact time, formatted as HH:MM:SS?"</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Panel 2: Tool Use Response ── -->
+      <div class="tu-panel" id="tu-p2">
+        <div class="tu-desc">Claude returns a <strong>multi-block</strong> response: a <code>text</code> block explaining what it's doing, and a <code>tool_use</code> block with the exact call to make. The <code>stop_reason</code> is <strong><code>"tool_use"</code></strong> — not <code>"end_turn"</code> — signalling your loop must continue.</div>
+        <div class="tu-history">
+          <div class="tu-history-label">messages[ ] — after Claude's first response</div>
+          <div class="tu-msg role-user show">
+            <div class="tu-msg-hdr">
+              <span>role: "user"</span>
+              <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.7rem">messages[0]</span>
+            </div>
+            <div class="tu-msg-body">
+              <div class="tu-blk"><span class="tu-k">content:</span> <span class="tu-s">"What is the exact time, formatted as HH:MM:SS?"</span></div>
+            </div>
+          </div>
+          <div class="tu-msg role-assistant show" style="transition-delay:0.18s">
+            <div class="tu-msg-hdr">
+              <span>role: "assistant"</span>
+              <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.7rem;color:#9f7aea">messages[1] ← NEW</span>
+            </div>
+            <div class="tu-msg-body">
+              <div class="tu-blk">
+                <div class="tu-blk-hdr"><span class="tu-badge tu-badge-text">text</span></div>
+                <span class="tu-k">text:</span> <span class="tu-s">"I can help you find the current time. Let me check that for you."</span>
+              </div>
+              <div class="tu-blk">
+                <div class="tu-blk-hdr"><span class="tu-badge tu-badge-tool-use">tool_use</span></div>
+                <span class="tu-k">id:</span>    <span class="tu-id">"toolu_01Abc123"</span><br>
+                <span class="tu-k">name:</span>  <span class="tu-fn">"get_current_datetime"</span><br>
+                <span class="tu-k">input:</span> { <span class="tu-k">"format"</span>: <span class="tu-s">"%H:%M:%S"</span> }
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tu-stop-row">
+          <span class="tu-stop-lbl">stop_reason:</span>
+          <span class="tu-stop-badge tool-use">"tool_use"</span>
+          <span class="tu-stop-lbl">→ loop must continue, do not return answer yet</span>
+        </div>
+      </div>
+
+      <!-- ── Panel 3: Execute & Return ── -->
+      <div class="tu-panel" id="tu-p3">
+        <div class="tu-desc">Extract the <code>tool_use</code> block, call your actual function, then add the result as a <strong>tool_result</strong> block back to messages. The <code>tool_use_id</code> must exactly match the ID Claude gave you — this is how Claude pairs results with requests.</div>
+        <pre class="code-block"><span class="cmt"># Extract tool call and run the function</span>
+tool_block = response.content[<span class="str">1</span>]                     <span class="cmt"># ToolUseBlock</span>
+result     = <span class="fn">get_current_datetime</span>(<span class="key">format</span>=<span class="str">"%H:%M:%S"</span>) <span class="cmt"># → "14:32:07"</span>
+
+<span class="cmt"># Package the result and append to messages</span>
+tool_result = {
+    <span class="str">"type"</span>:        <span class="str">"tool_result"</span>,
+    <span class="str">"tool_use_id"</span>: tool_block.id,   <span class="cmt"># must match!</span>
+    <span class="str">"content"</span>:     json.<span class="fn">dumps</span>(result),
+}
+messages.<span class="fn">append</span>({<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: [tool_result]})</pre>
+        <div class="tu-history">
+          <div class="tu-history-label">messages[ ] — after tool result added</div>
+          <div class="tu-msg role-user show">
+            <div class="tu-msg-hdr"><span>role: "user"</span><span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.7rem">messages[0]</span></div>
+            <div class="tu-msg-body"><div class="tu-blk"><span class="tu-k">content:</span> <span class="tu-s">"What is the exact time, formatted as HH:MM:SS?"</span></div></div>
+          </div>
+          <div class="tu-msg role-assistant show">
+            <div class="tu-msg-hdr"><span>role: "assistant"</span><span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.7rem">messages[1]</span></div>
+            <div class="tu-msg-body">
+              <div class="tu-blk"><div class="tu-blk-hdr"><span class="tu-badge tu-badge-text">text</span></div><span class="tu-s">"I can help you find the current time…"</span></div>
+              <div class="tu-blk"><div class="tu-blk-hdr"><span class="tu-badge tu-badge-tool-use">tool_use</span></div><span class="tu-k">id:</span> <span class="tu-id">"toolu_01Abc123"</span> &nbsp;·&nbsp; <span class="tu-k">name:</span> <span class="tu-fn">"get_current_datetime"</span></div>
+            </div>
+          </div>
+          <div class="tu-msg role-user show" style="transition-delay:0.18s">
+            <div class="tu-msg-hdr">
+              <span>role: "user"</span>
+              <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.7rem;color:#68d391">messages[2] ← NEW</span>
+            </div>
+            <div class="tu-msg-body">
+              <div class="tu-blk">
+                <div class="tu-blk-hdr"><span class="tu-badge tu-badge-tool-result">tool_result</span></div>
+                <span class="tu-k">tool_use_id:</span> <span class="tu-id">"toolu_01Abc123"</span> <span class="tu-c"># ← must match!</span><br>
+                <span class="tu-k">content:</span>     <span class="tu-s">"14:32:07"</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Panel 4: Final Answer ── -->
+      <div class="tu-panel" id="tu-p4">
+        <div class="tu-desc">Claude reads the tool result and generates a final natural-language response. The <code>stop_reason</code> is now <strong><code>"end_turn"</code></strong> — the <code>while</code> loop exits and the answer reaches the user.</div>
+        <div class="tu-history">
+          <div class="tu-history-label">messages[ ] — complete exchange (4 entries)</div>
+          <div class="tu-msg role-user show">
+            <div class="tu-msg-hdr"><span>role: "user"</span><span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.7rem">messages[0]</span></div>
+            <div class="tu-msg-body"><div class="tu-blk"><span class="tu-k">content:</span> <span class="tu-s">"What is the exact time, formatted as HH:MM:SS?"</span></div></div>
+          </div>
+          <div class="tu-msg role-assistant show">
+            <div class="tu-msg-hdr"><span>role: "assistant"</span><span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.7rem">messages[1]</span></div>
+            <div class="tu-msg-body">
+              <div class="tu-blk"><div class="tu-blk-hdr"><span class="tu-badge tu-badge-text">text</span></div><span class="tu-s">"I can help you find the current time…"</span></div>
+              <div class="tu-blk"><div class="tu-blk-hdr"><span class="tu-badge tu-badge-tool-use">tool_use</span></div><span class="tu-k">id:</span> <span class="tu-id">"toolu_01Abc123"</span> &nbsp;·&nbsp; <span class="tu-k">name:</span> <span class="tu-fn">"get_current_datetime"</span></div>
+            </div>
+          </div>
+          <div class="tu-msg role-user show">
+            <div class="tu-msg-hdr"><span>role: "user"</span><span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.7rem">messages[2]</span></div>
+            <div class="tu-msg-body">
+              <div class="tu-blk"><div class="tu-blk-hdr"><span class="tu-badge tu-badge-tool-result">tool_result</span></div><span class="tu-k">tool_use_id:</span> <span class="tu-id">"toolu_01Abc123"</span> &nbsp;·&nbsp; <span class="tu-k">content:</span> <span class="tu-s">"14:32:07"</span></div>
+            </div>
+          </div>
+          <div class="tu-msg role-assistant show" style="transition-delay:0.18s">
+            <div class="tu-msg-hdr">
+              <span>role: "assistant"</span>
+              <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.7rem;color:#9f7aea">messages[3] ← NEW</span>
+            </div>
+            <div class="tu-msg-body">
+              <div class="tu-blk"><div class="tu-blk-hdr"><span class="tu-badge tu-badge-text">text</span></div><span class="tu-s">"The current time is 14:32:07."</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="tu-stop-row">
+          <span class="tu-stop-lbl">stop_reason:</span>
+          <span class="tu-stop-badge end-turn">"end_turn"</span>
+          <span class="tu-stop-lbl">→ loop exits, answer returned to user</span>
+        </div>
+        <div class="tu-loop-note">
+          <strong>The while loop pattern:</strong> keep calling Claude and running tools as long as <code style="color:#9ae6b4">stop_reason == "tool_use"</code>. Only exit when <code style="color:#9ae6b4">stop_reason == "end_turn"</code>. Claude can request multiple tool calls in a single response and may loop several times before reaching a final answer.
+        </div>
+      </div>
+
+      <div class="demo-controls">
+        <button class="btn btn-ghost" id="tuPrev" onclick="tuNav(-1)" disabled>← Prev</button>
+        <button class="btn btn-primary" id="tuNext" onclick="tuNav(1)">Next →</button>
+        <span class="step-indicator" id="tuIndicator">Step 1 of 5</span>
+      </div>
+    </div>
+
+    <pre class="code-block"><span class="kw">def</span> <span class="fn">run_conversation</span>(messages):
+    <span class="kw">while</span> <span class="kw">True</span>:
+        response = <span class="fn">chat</span>(messages, tools=[get_current_datetime_schema])
+        <span class="fn">add_assistant_message</span>(messages, response)
+
+        <span class="kw">if</span> response.stop_reason != <span class="str">"tool_use"</span>:
+            <span class="kw">break</span>                          <span class="cmt"># ← "end_turn": done</span>
+
+        tool_results = <span class="fn">run_tools</span>(response)  <span class="cmt"># execute all tool_use blocks</span>
+        <span class="fn">add_user_message</span>(messages, tool_results)
+
+    <span class="kw">return</span> messages</pre>
   </section>
 
 </main>
@@ -2618,6 +2920,32 @@ function ppRender() {
 }
 
 ppRender();
+
+/* ═══════════════════════════════════
+   TOOL USE VISUALIZER
+═══════════════════════════════════ */
+let tuStep  = 0;
+const TU_MAX = 4;
+
+function tuGoTo(n) {
+  tuStep = Math.max(0, Math.min(TU_MAX, n));
+  document.querySelectorAll('.tu-panel').forEach((el, i) =>
+    el.classList.toggle('visible', i === tuStep));
+  document.querySelectorAll('.tu-tab').forEach((t, i) => {
+    t.classList.remove('active', 'done');
+    if (i === tuStep)      t.classList.add('active');
+    else if (i < tuStep)   t.classList.add('done');
+  });
+  document.getElementById('tuPrev').disabled = tuStep === 0;
+  const nextBtn = document.getElementById('tuNext');
+  nextBtn.disabled    = tuStep === TU_MAX;
+  nextBtn.textContent = tuStep === TU_MAX ? 'Done ✓' : 'Next →';
+  document.getElementById('tuIndicator').textContent = `Step ${tuStep + 1} of ${TU_MAX + 1}`;
+}
+
+function tuNav(dir) { tuGoTo(tuStep + dir); }
+
+tuGoTo(0);
 
 /* ── Init ── */
 showStage(1);

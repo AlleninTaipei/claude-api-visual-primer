@@ -263,8 +263,6 @@ text = chat(messages, stop_sequences=["```"])
 parsed_json = json.loads(text.strip())
 ```
 
----
-
 ### Provider Portability and Local Models
 
 When app developers move computation to local open-source models — Ollama, LM Studio, vLLM, llama.cpp — a practical question arises: does the code need to be rewritten?
@@ -306,3 +304,284 @@ These SDKs communicate in their own protocol. Local model servers do not impleme
 #### Architectural implication
 
 If your application needs to remain portable across cloud providers and local compute, build against the OpenAI SDK format from the start — even when routing to Claude or Gemini via a proxy. This keeps the cost of changing compute providers as low as possible.
+
+## Tool Use
+
+### How Tool Use Works
+
+Tool use lets Claude call functions you define or that Anthropic provides. Claude decides when to call a tool based on the user's request and the tool's description, then returns a structured call that your application executes (client tools) or that Anthropic executes (server tools).
+
+* Initial Request: You send Claude a question along with instructions on how to get extra data from external sources
+* Tool Request: Claude analyzes the question and decides it needs additional information, then asks for specific details about what data it needs
+* Data Retrieval: Your server runs code to fetch the requested information from external APIs or databases
+* Final Response: You send the retrieved data back to Claude, which then generates a complete response using both the original question and the fresh data
+
+### Whrite a Tool Function
+
+**A tool function** is a plain Python function that gets executed automatically when Claude determines it needs extra information to complete a task.
+
+* Use descriptive names: Both your function name and parameter names should clearly indicate their purpose
+* Validate inputs: Always check that required parameters are present and valid
+* Provide meaningful error messages: If Claude gets an error, it might try calling your function again with corrected parameters
+
+### Create a Tool Schema
+
+**A tool schema** is a JSON schema that tells Claude what arguments your function expects and how to use it. This schema acts as documentation that Claude reads to understand when and how to call your tools.
+
+* name - The function name (like "get_current_datetime")
+* description - What the tool does and when to use it
+* input_schema - The actual JSON schema describing the arguments
+
+### Writing Effective Descriptions
+
+The combination of a well-written tool function and a detailed JSON schema **gives Claude everything it needs to understand** and properly use your tools in conversations.
+
+* Explain what the tool does, when to use it, and what it returns
+* Aim for 3-4 sentences
+* Provide detailed descriptions for each argument as well
+* Use a consistent naming pattern like **function_name_schema** to keep things organized
+* For better type checking, import and use the ToolParam type from the Anthropic library
+
+###　The Easy Way: Let Claude Write Your Schema
+
+* 1. Copy your tool function
+* 2. Go to Claude and ask it to "Write a valid JSON schema spec for the purposes of tool calling for this function. Follow the best practices listed in the attached documentation."
+
+###　Handling message blocks
+
+To enable Claude to use tools, you need to include a **tools** parameter in your API call.
+The **tools** parameter takes a list of JSON schemas that describe the available functions Claude can call.
+
+```python
+messages = []
+messages.append({
+    "role": "user",
+    "content": "What is the exact time, formatted as HH:MM:SS?"
+})
+
+response = client.messages.create(
+    model=model,
+    max_tokens=1000,
+    messages=messages,
+    tools=[get_current_datetime_schema],
+)
+```
+
+#### Understanding Multi-Block Messages
+
+* Text Block - Human-readable text explaining what Claude is doing (like "I can help you find out the current time. Let me find that information for you")
+* ToolUse Block - Instructions for your code about which tool to call and what parameters to use
+  * An ID for tracking the tool call
+  * The name of the function to call (like "get_current_datetime")
+  * Input parameters formatted according to your JSON schema
+  * The type designation "tool_use"
+
+#### The Complete Flow
+
+The fundamental principle of maintaining complete message history remains the same.
+
+Claude doesn't store conversation history, so you must manage it manually. When working with tool responses, you need to preserve the entire content structure, including all blocks.
+
+* 1. Send user message with tool schema to Claude
+* 2. Receive multi-block assistant message (text + tool use)
+* 3. Extract tool call information and execute the function
+
+```python
+# Access the tool use block
+tool_use_block = response.content[1]
+
+# Get the input parameters
+input_params = tool_use_block.input
+
+# Call your function with the parameters
+result = get_current_datetime(**input_params)
+```
+
+* 4. Send tool result back to Claude with complete message history
+* 5. Receive final response from Claude
+
+#### Complete Messages History After a Tool Exchange
+
+After one complete tool use cycle, your messages array contains four entries. Two of them use complex content block structures instead of plain strings — this is the part most implementations get wrong:
+
+```python
+messages = [
+    # 1. Original user request — plain string content
+    { "role": "user",
+      "content": "What is the exact time, formatted as HH:MM:SS?" },
+
+    # 2. Claude's multi-block response — preserve the ENTIRE content list, never flatten it
+    { "role": "assistant",
+      "content": [
+          { "type": "text",
+            "text": "I can help you find the current time. Let me check that for you." },
+          { "type": "tool_use",
+            "id":    "toolu_01Abc123",
+            "name":  "get_current_datetime",
+            "input": { "format": "%H:%M:%S" } }
+      ]},
+
+    # 3. Tool result — role is "user"; tool_use_id must exactly match step 2
+    { "role": "user",
+      "content": [
+          { "type":        "tool_result",
+            "tool_use_id": "toolu_01Abc123",   # ← must match id above
+            "content":     "14:32:07" }
+      ]},
+
+    # 4. Claude's final answer — plain text, stop_reason is now "end_turn"
+    { "role": "assistant",
+      "content": "The current time is 14:32:07." },
+]
+```
+
+Two critical rules:
+* The assistant message that contains tool calls must be stored with its complete `content` list — never extract just the text and discard the tool_use blocks. Claude needs the full history to understand the context.
+* The `tool_use_id` in the tool_result must exactly match the `id` Claude assigned in the tool_use block. Claude uses this pairing to correlate results with requests, especially when multiple tools are called in one turn.
+
+#### Handling Multiple Tool Calls
+
+Claude can request multiple tool calls in a single response.
+
+Each tool use block gets a unique ID, and you must match these IDs when sending back results. This ID system ensures Claude can correctly match each result with its corresponding request, even if the results arrive in a different order.
+
+**Example — calculating a date then setting a reminder:**
+
+```
+User: "Set a reminder for my doctor's appointment. It's 177 days after Jan 1st, 2050."
+
+Claude turn 1 (stop_reason: "tool_use"):
+  content[0]: text       → "Let me calculate that date and set the reminder."
+  content[1]: tool_use   → add_duration_to_datetime(base="2050-01-01", days=177)  [id: "toolu_01"]
+  content[2]: tool_use   → set_reminder(title="Doctor's appointment", date=???)   [id: "toolu_02"]
+                                                 ↑ Claude may use a placeholder if it needs
+                                                   the result of the first tool to fill this in
+
+Your code:
+  → run both tools in sequence (or parallel if independent)
+  → return one user message with two tool_result blocks, IDs matching "toolu_01" and "toolu_02"
+
+Claude turn 2 (stop_reason: "end_turn"):
+  content[0]: text → "I've set a reminder for your doctor's appointment on June 27, 2050."
+```
+
+When Claude returns multiple `tool_use` blocks, your `run_tools()` function processes all of them and packages the results as a single `user` message containing a list of `tool_result` blocks — one per call, each matched by its unique ID.
+
+```python
+def add_user_message(messages, message):
+    user_message = {
+        "role": "user",
+        "content": message.content if isinstance(message, Message) else message,
+    }
+    messages.append(user_message)
+
+
+def add_assistant_message(messages, message):
+    assistant_message = {
+        "role": "assistant",
+        "content": message.content if isinstance(message, Message) else message,
+    }
+    messages.append(assistant_message)
+
+
+def chat(messages, system=None, temperature=1.0, stop_sequences=[], tools=None):
+    params = {
+        "model": model,
+        "max_tokens": 1000,
+        "messages": messages,
+        "temperature": temperature,
+        "stop_sequences": stop_sequences,
+    }
+
+    if tools:
+        params["tools"] = tools
+
+    if system:
+        params["system"] = system
+
+    message = client.messages.create(**params)
+    return message
+
+
+def text_from_message(message):
+    return "\n".join(
+        [block.text for block in message.content if block.type == "text"]
+    )
+
+
+def run_tool(tool_name, tool_input):
+    if tool_name == "get_current_datetime":
+        return get_current_datetime(**tool_input)
+    elif tool_name == "add_duration_to_datetime":
+        return add_duration_to_datetime(**tool_input)
+    elif tool_name == "set_reminder":
+        return set_reminder(**tool_input)
+
+
+def run_tools(message):
+    tool_requests = [
+        block for block in message.content if block.type == "tool_use"
+    ]
+    tool_result_blocks = []
+
+    for tool_request in tool_requests:
+        try:
+            tool_output = run_tool(tool_request.name, tool_request.input)
+            tool_result_block = {
+                "type": "tool_result",
+                "tool_use_id": tool_request.id,
+                "content": json.dumps(tool_output),
+                "is_error": False,
+            }
+        except Exception as e:
+            tool_result_block = {
+                "type": "tool_result",
+                "tool_use_id": tool_request.id,
+                "content": f"Error: {e}",
+                "is_error": True,
+            }
+
+        tool_result_blocks.append(tool_result_block)
+
+    return tool_result_blocks
+
+
+def run_conversation(messages):
+    while True:
+        response = chat(
+            messages,
+            tools=[
+                get_current_datetime_schema,
+                add_duration_to_datetime_schema,
+                set_reminder_schema,
+            ],
+        )
+
+        add_assistant_message(messages, response)
+        print(text_from_message(response))
+
+        if response.stop_reason != "tool_use":
+            break
+
+        tool_results = run_tools(response)
+        add_user_message(messages, tool_results)
+
+    return messages
+
+messages = []
+add_user_message(
+    messages,
+    "Set a reminder for my doctors appointment. Its 177 days after Jan 1st, 2050.",
+)
+run_conversation(messages)    
+
+```
+
+### The batch tool
+
+* You define a batch tool schema that tells Claude it can run multiple other tools in parallel
+* Instead of calling tools directly, Claude calls the batch tool with a list of tool invocations
+* Your code processes this list and executes each tool call
+* You return the combined results back to Claude
+
+The batch tool pattern is an effective way to encourage Claude to think about operations that can be parallelized and execute them more efficiently.
