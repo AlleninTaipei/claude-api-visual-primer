@@ -1,5 +1,7 @@
 # Building with the Claude API
 
+*Reference: [anthropic.com/learn](https://www.anthropic.com/learn)*
+
 ## Accessing the API
 
 When building applications with Claude, understanding the complete request lifecycle helps you architect better systems and debug issues more effectively. Let's walk through what happens when a user sends a message to your AI-powered chat application.
@@ -79,8 +81,6 @@ Your server then forwards the generated text to your client application, where i
 This entire process - from user input through tokenization, embedding, contextualization, generation, and back to the user - happens in seconds. Understanding this flow helps you build more robust applications and troubleshoot issues when they arise.
 
 *The key takeaway*: always use a server as an intermediary, understand that text generation is an iterative process, and pay attention to the response metadata to monitor usage and understand model behavior.
-
----
 
 ### Multi-turn conversations
 
@@ -304,6 +304,8 @@ These SDKs communicate in their own protocol. Local model servers do not impleme
 #### Architectural implication
 
 If your application needs to remain portable across cloud providers and local compute, build against the OpenAI SDK format from the start — even when routing to Claude or Gemini via a proxy. This keeps the cost of changing compute providers as low as possible.
+
+---
 
 ## Tool Use
 
@@ -585,3 +587,346 @@ run_conversation(messages)
 * You return the combined results back to Claude
 
 The batch tool pattern is an effective way to encourage Claude to think about operations that can be parallelized and execute them more efficiently.
+
+---
+
+## Workflows and Agents
+
+**Workflows**, a series of calls to Claude meant to solve a specific problem through a predetermined series of steps.
+
+**Agents**, a setup where Claude is given a goal and tools, then figures out how to complete the goal.
+
+### Real-World Workflow Examples
+
+#### 1. Users drag and drop an image of a metal part, and the app creates a STEP file (an industry standard for 3D models)
+
+The Evaluator-Optimizer Pattern
+
+* Producer: Takes input and creates output (Claude using **CadQuery** to model and render)
+* Grader: Evaluates the output against criteria
+* Feedback loop: If the grader rejects the output, feedback goes back to the producer for improvement
+* Acceptance: The cycle continues until the grader accepts the output
+
+#### 2. Users upload images of parts and get recommendations for the best material to use
+
+Parallelization to Aggregating the Results
+
+* Split a single complex task into multiple specialized sub-tasks
+  * One request analyzes suitability for metal
+  * Another evaluates polymer options
+  * A third considers ceramic materials
+  * And so on for each material type
+* Run the sub-tasks in parallel (simultaneously)
+* Aggregate the results together in a final step
+
+#### 3. Using Claude to write technical articles. You start with a simple prompt, but the output isn't quite right. Claude might mention it's an AI, use too many emojis, or write in a cringey tone
+
+Instead of fighting this in one massive prompt, use a two-step chaining approach:
+
+* First request: Send your original prompt with all constraints, accepting that you'll get an imperfect article
+
+* Second request: Ask Claude to revise the article with specific, focused instructions
+  * Revise the article provided below. Follow these steps to rewrite the article: 1. Identify any location where the text identifies the author as an AI and remove them 2. Find and remove all emojis 3. Locate any cringey writing and replace it with text that would be written by a technical writer
+
+The Chaining Solution
+
+* Split large tasks into smaller, non-parallelizable subtasks
+* Optionally do non-LLM processing between each task
+* Keep Claude focused on one aspect of the overall task
+
+This approach becomes especially valuable when dealing with complex tasks or when Claude isn't consistently following all your constraints.
+
+#### 4. Consider a social media marketing tool that generates video scripts from user topics
+
+Routing workflow
+
+* Categorization : Send the user's topic to Claude with a categorization prompt asking it to classify the content type.
+* Specialized Processing : Based on Claude's categorization, use the appropriate specialized pipeline. Each pipeline has its own workflow, prompts, or tools to generate the actual content.
+
+### Provide Reasonably Abstract Tools
+
+* bash - Run commands
+* glob - Find files
+* grep - Search file contents
+* read - Read a file
+* write - Create a file
+* edit - Edit a file
+* webfetch - Fetch a URL
+* generate_image - Creates images from text prompts
+* text_to_speech - Converts text to audio
+* post_media - Publishes content to social media
+
+### Real-World Agent Examples
+
+#### 1. Install dependencies
+  
+* Agent reads project files to understand the configuration
+* Then uses bash to run the appropriate installation commands
+
+#### 2. Create and post a video on "Python programming"
+
+System Prompts for Inspection
+
+* Agent can generate a sample image, show it to the user for approval
+* Proceed with video creation
+  * Use the bash tool to run whisper.cpp and generate caption files with timestamps to verify dialog placement
+  * Use FFmpeg to extract screenshots from the video at regular intervals to confirm visual quality
+  * Check file sizes and formats before attempting uploads
+* Publish once confirmed
+
+By building environment inspection into your agents, you create more reliable and self-correcting systems that can handle unexpected results gracefully.
+
+Every action an agent takes should be followed by some form of verification or inspection to confirm the desired outcome was achieved.
+
+### Choosing the Right Approach
+
+> *Workflows > Agents*
+
+While agents are really interesting from a technical perspective, remember that your primary goal as an engineer is to solve problems reliably. Users probably don't care that you've built a fancy agent - they want a product that works 100% of the time.
+
+The general recommendation is to always focus on implementing workflows where possible, and only resort to agents when they are truly required. Workflows give you the predictability and reliability that most production applications need, while agents provide flexibility for scenarios where the exact solution path can't be predetermined.
+
+---
+
+## Introducing MCP
+
+Model Context Protocol (MCP) is a communication layer that provides Claude with context and tools without requiring you to write a bunch of tedious integration code.
+
+* Who Creates MCP Servers
+  * Anyone can create an MCP Server implementation. Often, service providers themselves will create official MCP implementations. For example, Github might release their own official MCP Server with tools for their massive services.
+  * You do not have to create an incredible number of tool schemas and functions like repositories, pull requests, issues, projects, and much more.
+
+* How is using an MCP Server different from calling a service's API directly?
+  * MCP Servers provide **tool schemas** and **functions** already defined for you. If you call an API directly, you'll be writing those tool definitions yourself. MCP saves you that implementation work.
+
+* MCP Servers and tool use are complementary but different concepts.
+  * MCP Servers provide pre-built tool schemas and functions, while tool use is about how Claude actually calls those tools. MCP is really about who does the work of creating and maintaining the tool implementations.
+
+* MCP Inspector
+  * The Python MCP SDK includes a built-in browser-based inspector that lets you debug and test your server in real-time.
+
+* Real-world projects : You typically implement either an MCP client or an MCP server, not both. You might build:
+  * Just an MCP server to expose your service's capabilities to AI models
+  * Just an MCP client to connect to existing MCP servers built by other developers
+
+### MCP Clients
+
+The MCP client serves as the communication bridge between your server and MCP servers.
+
+The most common setup runs both the MCP client and server on the same machine, where they communicate through standard input/output.
+
+MCP clients and servers can also connect over HTTP, WebSockets and Various other network protocols.
+
+Here's a complete example showing how a user query flows through the entire system - from your server, through the MCP client, to external services like GitHub, and back to Claude.
+
+Let's say a user asks "What repositories do I have?" Here's the step-by-step flow:
+
+* User Query: The user submits their question to your server
+* Tool Discovery: Your server needs to know what tools are available to send to Claude
+* List Tools Exchange: Your server asks the MCP client for available tools
+* MCP Communication: The MCP client sends a **ListToolsRequest** to the MCP server and receives a **ListToolsResult**
+* Claude Request: Your server sends the user's query plus the available tools to Claude
+* Tool Use Decision: Claude decides it needs to call a tool to answer the question
+* Tool Execution Request: Your server asks the MCP client to run the tool Claude specified
+* External API Call: The MCP client sends a **CallToolRequest** to the MCP server, which makes the actual GitHub API call
+* Results Flow Back: GitHub responds with repository data, which flows back through the MCP server as a **CallToolResult**
+* Tool Result to Claude: Your server sends the tool results back to Claude
+* Final Response: Claude formulates a final answer using the repository data
+* User Gets Answer: Your server delivers Claude's response back to the user
+
+### Setting Up the MCP Server
+
+```python
+from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("DocumentMCP", log_level="ERROR")
+```
+
+* No manual JSON schema writing required
+* Type hints provide automatic parameter validation
+* Field descriptions help Claude understand tool usage
+* Error handling integrates naturally with Python exceptions
+* Tool registration happens automatically through decorators
+
+```python
+@mcp.tool(
+    name="read_doc_contents",
+    description="Read the contents of a document and return it as a string.",
+)
+def read_document(
+    doc_id: str = Field(description="Id of the document to read"),
+) -> str:
+    if doc_id not in docs:
+        raise ValueError(f"Doc with id {doc_id} not found")
+
+    return docs[doc_id]
+
+
+@mcp.tool(
+    name="edit_document",
+    description="Edit a document by replacing a string in the documents content with a new string",
+)
+def edit_document(
+    doc_id: str = Field(description="Id of the document that will be edited"),
+    old_str: str = Field(
+        description="The text to replace. Must match exactly, including whitespace"
+    ),
+    new_str: str = Field(
+        description="The new text to insert in place of the old text"
+    ),
+) -> None:
+    if doc_id not in docs:
+        raise ValueError(f"Doc with id {doc_id} not found")
+
+    docs[doc_id] = docs[doc_id].replace(old_str, new_str)
+
+
+@mcp.resource("docs://documents", mime_type="application/json")
+def list_docs() -> list[str]:
+    return list(docs.keys())
+
+
+@mcp.resource("docs://documents/{doc_id}", mime_type="text/plain")
+def fetch_doc(doc_id: str) -> str:
+    if doc_id not in docs:
+        raise ValueError(f"Doc with id {doc_id} not found")
+    return docs[doc_id]
+
+
+@mcp.prompt(
+    name="format",
+    description="Rewrites the contents of the document in Markdown format.",
+)
+def format_document(
+    doc_id: str = Field(description="Id of the document to format"),
+) -> list[base.Message]:
+    prompt = f"""
+    Your goal is to reformat a document to be written with markdown syntax.
+
+    The id of the document you need to reformat is:
+    <document_id>
+    {doc_id}
+    </document_id>
+
+    Add in headers, bullet points, tables, etc as necessary. Feel free to add in extra text, but don't change the meaning of the report.
+    Use the 'edit_document' tool to edit the document. After the document has been edited, respond with the final version of the doc. Don't explain your changes.
+    """
+
+    return [base.UserMessage(prompt)]
+
+```
+
+### Implementing a client
+
+* MCP Client - A custom class we create to make using the session easier
+* Client Session - The actual connection to the server (part of the MCP Python SDK)
+
+```python
+class MCPClient:
+    def __init__(
+        self,
+        command: str,
+        args: list[str],
+        env: Optional[dict] = None,
+    ):
+        self._command = command
+        self._args = args
+        self._env = env
+        self._session: Optional[ClientSession] = None
+        self._exit_stack: AsyncExitStack = AsyncExitStack()
+
+    async def connect(self):
+        server_params = StdioServerParameters(
+            command=self._command,
+            args=self._args,
+            env=self._env,
+        )
+        stdio_transport = await self._exit_stack.enter_async_context(
+            stdio_client(server_params)
+        )
+        _stdio, _write = stdio_transport
+        self._session = await self._exit_stack.enter_async_context(
+            ClientSession(_stdio, _write)
+        )
+        await self._session.initialize()
+
+    def session(self) -> ClientSession:
+        if self._session is None:
+            raise ConnectionError(
+                "Client session not initialized or cache not populated. Call connect_to_server first."
+            )
+        return self._session
+
+    async def list_tools(self) -> list[types.Tool]:
+        result = await self.session().list_tools()
+        return result.tools
+
+    async def call_tool(
+        self, tool_name: str, tool_input
+    ) -> types.CallToolResult | None:
+        return await self.session().call_tool(tool_name, tool_input)
+
+    async def list_prompts(self) -> list[types.Prompt]:
+        result = await self.session().list_prompts()
+        return result.prompts
+
+    async def get_prompt(self, prompt_name, args: dict[str, str]):
+        result = await self.session().get_prompt(prompt_name, args)
+        return result.messages
+
+    async def read_resource(self, uri: str) -> Any:
+        result = await self.session().read_resource(AnyUrl(uri))
+        resource = result.contents[0]
+
+        if isinstance(resource, types.TextResourceContents):
+            if resource.mimeType == "application/json":
+                return json.loads(resource.text)
+
+            return resource.text
+
+    async def cleanup(self):
+        await self._exit_stack.aclose()
+        self._session = None
+
+    async def __aenter__(self):
+        await self.connect()
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.cleanup()
+
+```
+
+### MCP Server Primitives
+
+#### Tools: Model-Controlled
+
+Tools are controlled entirely by Claude. The AI model decides when to call these functions, and the results are used directly by Claude to accomplish tasks.
+
+Use tools when you want to give Claude additional capabilities. For example, if you ask Claude to calculate the square root of 3 using JavaScript, Claude will automatically decide to use a JavaScript execution tool to provide an accurate answer.
+
+#### Resources: App-Controlled
+
+Resources are controlled by your application code. Your app decides when to fetch resource data and how to use it, typically for UI purposes or to add context to conversations.
+
+Use resources when you need to get data into your app. Common examples include:
+
+* Populating autocomplete options in your UI
+* Adding context to messages before sending them to Claude
+* Displaying lists of available documents or files
+
+#### Prompts: User-Controlled
+
+Prompts are triggered by user actions. Users decide when to run these predefined workflows through UI interactions like button clicks, menu selections, or slash commands.
+
+Use prompts for workflows that users should be able to trigger on demand. These are perfect for:
+
+* Predefined conversation starters
+* Common task templates
+* Specialized workflows optimized for specific use cases
+
+#### Choosing the Right Primitive
+
+* Need to extend Claude's capabilities? Use tools
+* Need data for your app's UI or context? Use resources
+* Want to offer predefined workflows to users? Use prompts

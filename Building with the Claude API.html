@@ -928,6 +928,170 @@
       border-radius: 7px; padding: 10px 14px; font-size: 0.82rem; color: #68d391; line-height: 1.6;
     }
     .tu-loop-note strong { color: #9ae6b4; }
+
+    /* ══════════════════════════════════
+       WORKFLOWS & AGENTS
+    ══════════════════════════════════ */
+    .wa-compare {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0;
+    }
+    @media (max-width: 580px) { .wa-compare { grid-template-columns: 1fr; } }
+    .wa-card {
+      background: #1a202c; border-radius: 10px; padding: 16px 18px;
+      border: 1px solid #2d3748;
+    }
+    .wa-card-workflow { border-top: 3px solid #4299e1; }
+    .wa-card-agent    { border-top: 3px solid #ed8936; }
+    .wa-card-hdr { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .wa-badge {
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em;
+      padding: 2px 8px; border-radius: 4px;
+    }
+    .wa-badge-wf { background: #1a2a4a; color: #90cdf4; }
+    .wa-badge-ag { background: #3a1a00; color: #f6ad55; }
+    .wa-card-sub { font-size: 0.78rem; color: #718096; }
+    .wa-list { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+    .wa-list li { font-size: 0.82rem; color: #a0aec0; padding-left: 14px; position: relative; }
+    .wa-list li::before { content: "·"; position: absolute; left: 3px; color: #4a5568; }
+
+    .wa-wrap {
+      background: #0d1117; border: 1px solid #2d3748; border-radius: 12px;
+      padding: 22px; margin: 16px 0;
+    }
+    .wa-tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+    .wa-tab {
+      padding: 6px 14px; border-radius: 20px; font-size: 0.77rem; font-weight: 600;
+      cursor: pointer; border: 1px solid #2d3748; background: #1a202c; color: #718096;
+      transition: all 0.2s; white-space: nowrap;
+    }
+    .wa-tab.active { background: #1a2a4a; border-color: #4299e1; color: #90cdf4; }
+    .wa-panel { display: none; }
+    .wa-panel.visible { display: block; animation: fadeIn 0.3s ease; }
+    .wa-panel-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 620px) { .wa-panel-inner { grid-template-columns: 1fr; } }
+    .wa-diagram {
+      background: #12171f; border: 1px solid #2d3748; border-radius: 8px;
+      padding: 16px; display: flex; flex-direction: column;
+      gap: 8px; justify-content: center; min-height: 120px;
+    }
+    .wa-flow-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .wa-box {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 6px;
+      padding: 6px 10px; font-size: 0.72rem; font-weight: 600;
+      color: #e2e8f0; text-align: center;
+    }
+    .wa-box-sub { font-size: 0.6rem; color: #718096; font-weight: 400; margin-top: 2px; }
+    .wa-box-in   { color: #a0aec0; }
+    .wa-box-proc { border-color: #4299e1; background: #0e1a28; color: #90cdf4; }
+    .wa-box-eval { border-color: #9f7aea; background: #1e1230; color: #d6bcfa; }
+    .wa-box-out  { border-color: #48bb78; background: #0e2018; color: #c6f6d5; }
+    .wa-arr { font-size: 0.78rem; color: #4a5568; flex-shrink: 0; }
+    .wa-sub-col { display: flex; flex-direction: column; gap: 5px; }
+    .wa-fb-note {
+      background: #1e1230; border: 1px solid #553c9a; border-radius: 5px;
+      padding: 6px 10px; font-size: 0.7rem; color: #b794f4; line-height: 1.4;
+    }
+    .wa-example {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 8px; padding: 14px 16px;
+    }
+    .wa-example-label {
+      font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em;
+      color: #4a5568; margin-bottom: 6px; text-transform: uppercase;
+    }
+    .wa-example-text { font-size: 0.8rem; color: #a0aec0; line-height: 1.6; }
+    .wa-callout {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: #0d1e0d; border: 1px solid #276749; border-radius: 10px;
+      padding: 16px 20px; margin-top: 16px;
+      font-size: 0.85rem; color: #9ae6b4; line-height: 1.6;
+    }
+    .wa-callout strong { color: #68d391; }
+    .wa-callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+
+    /* ══════════════════════════════════
+       MCP
+    ══════════════════════════════════ */
+    .mcp-primitives {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 20px 0;
+    }
+    @media (max-width: 600px) { .mcp-primitives { grid-template-columns: 1fr; } }
+    .mcp-prim-card {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 10px; padding: 16px;
+    }
+    .mcp-prim-icon { font-size: 1.5rem; margin-bottom: 8px; }
+    .mcp-prim-name { font-size: 0.88rem; font-weight: 700; color: #e2e8f0; margin-bottom: 4px; }
+    .mcp-ctrl-badge {
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.07em;
+      padding: 2px 7px; border-radius: 3px; display: inline-block; margin-bottom: 8px;
+    }
+    .mcp-ctrl-model { background: #2d1f4a; color: #b794f4; }
+    .mcp-ctrl-app   { background: #1a2a4a; color: #90cdf4; }
+    .mcp-ctrl-user  { background: #1c3a2a; color: #68d391; }
+    .mcp-prim-desc { font-size: 0.78rem; color: #718096; line-height: 1.5; margin-bottom: 8px; }
+    .mcp-prim-uses { list-style: none; }
+    .mcp-prim-uses li {
+      font-size: 0.74rem; color: #4a5568;
+      padding: 2px 0 2px 12px; position: relative;
+    }
+    .mcp-prim-uses li::before { content: "→"; position: absolute; left: 0; }
+
+    .mcp-flow-wrap {
+      background: #0d1117; border: 1px solid #2d3748; border-radius: 12px;
+      padding: 24px; margin: 20px 0;
+    }
+    .mcp-flow-tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+    .mcp-flow-tab {
+      padding: 6px 13px; border-radius: 20px; font-size: 0.77rem; font-weight: 600;
+      cursor: pointer; border: 1px solid #2d3748; background: #1a202c; color: #718096;
+      transition: all 0.2s; white-space: nowrap;
+    }
+    .mcp-flow-tab.active { background: #1c3a2a; border-color: #48bb78; color: #9ae6b4; }
+    .mcp-flow-tab.done   { background: #1a2a3a; border-color: #4299e1; color: #90cdf4; }
+    .mcp-flow-panel { display: none; }
+    .mcp-flow-panel.visible { display: block; animation: fadeIn 0.3s ease; }
+    .mcp-flow-desc {
+      border-left: 3px solid #48bb78; padding: 9px 14px;
+      margin-bottom: 14px; font-size: 0.85rem; color: #a0aec0; line-height: 1.6;
+    }
+    .mcp-flow-desc strong { color: #e2e8f0; }
+
+    .mcp-arch-diagram {
+      background: #12171f; border: 1px solid #2d3748; border-radius: 8px;
+      padding: 14px 16px; margin-bottom: 14px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .mcp-arch-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+    .mcp-arch-row-label {
+      font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #4a5568; min-width: 32px;
+    }
+    .mcp-node {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 6px;
+      padding: 5px 10px; font-size: 0.71rem; font-weight: 600;
+      color: #4a5568; text-align: center; transition: all 0.3s;
+    }
+    .mcp-node.green { border-color: #48bb78; background: #0e2018; color: #9ae6b4; }
+    .mcp-node.blue  { border-color: #4299e1; background: #0e1a28; color: #90cdf4; }
+    .mcp-narr { font-size: 0.75rem; color: #2d3748; flex-shrink: 0; transition: color 0.3s; }
+    .mcp-narr.green { color: #48bb78; }
+    .mcp-narr.blue  { color: #4299e1; }
+
+    .mcp-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 580px) { .mcp-detail-grid { grid-template-columns: 1fr; } }
+    .mcp-detail-card {
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 8px; padding: 12px 14px;
+    }
+    .mcp-detail-title {
+      font-size: 0.63rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #4a5568; margin-bottom: 6px;
+    }
+    .mcp-detail-card p { color: #a0aec0; font-size: 0.79rem; margin: 0; line-height: 1.55; }
+    .mcp-msg-badge {
+      font-family: monospace; font-size: 0.68rem; padding: 1px 7px;
+      border-radius: 3px; font-weight: 700; display: inline-block; margin-bottom: 4px;
+    }
+    .mcp-badge-req { background: #1a2a4a; color: #90cdf4; }
+    .mcp-badge-res { background: #1c3a2a; color: #68d391; }
   </style>
 </head>
 <body>
@@ -1959,6 +2123,385 @@ messages.<span class="fn">append</span>({<span class="str">"role"</span>: <span 
     <span class="kw">return</span> messages</pre>
   </section>
 
+  <!-- ── 13. Workflows and Agents ── -->
+  <section>
+    <h2>Workflows &amp; Agents</h2>
+    <p>Two complementary approaches for building multi-step AI systems. Choose based on how much of the solution path is known in advance.</p>
+
+    <div class="wa-compare">
+      <div class="wa-card wa-card-workflow">
+        <div class="wa-card-hdr">
+          <span class="wa-badge wa-badge-wf">WORKFLOW</span>
+          <span class="wa-card-sub">Predetermined steps</span>
+        </div>
+        <ul class="wa-list">
+          <li>Solution path defined in advance</li>
+          <li>Each step calls Claude with a specific task</li>
+          <li>Predictable, testable, production-ready</li>
+          <li>Best for most production applications</li>
+        </ul>
+      </div>
+      <div class="wa-card wa-card-agent">
+        <div class="wa-card-hdr">
+          <span class="wa-badge wa-badge-ag">AGENT</span>
+          <span class="wa-card-sub">Goal-directed autonomy</span>
+        </div>
+        <ul class="wa-list">
+          <li>Claude decides the steps at runtime</li>
+          <li>Given a goal + tools, figures out how</li>
+          <li>Flexible but less predictable</li>
+          <li>Use only when path can't be predetermined</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Workflow Patterns</h3>
+    <div class="wa-wrap">
+      <div class="wa-tabs">
+        <div class="wa-tab active" onclick="waGoTo(0)">Evaluator-Optimizer</div>
+        <div class="wa-tab" onclick="waGoTo(1)">Parallelization</div>
+        <div class="wa-tab" onclick="waGoTo(2)">Chaining</div>
+        <div class="wa-tab" onclick="waGoTo(3)">Routing</div>
+      </div>
+
+      <!-- Panel 0: Evaluator-Optimizer -->
+      <div class="wa-panel visible" id="wa-p0">
+        <div class="wa-panel-inner">
+          <div class="wa-diagram">
+            <div class="wa-flow-row">
+              <div class="wa-box wa-box-in">Input</div>
+              <div class="wa-arr">→</div>
+              <div class="wa-box wa-box-proc">Producer</div>
+              <div class="wa-arr">→</div>
+              <div class="wa-box wa-box-proc">Output</div>
+              <div class="wa-arr">→</div>
+              <div class="wa-box wa-box-eval">Grader</div>
+            </div>
+            <div class="wa-fb-note">↺ Reject: Grader sends feedback back to Producer — loop continues until accepted</div>
+          </div>
+          <div class="wa-example">
+            <div class="wa-example-label">Real-World Example</div>
+            <div class="wa-example-text">User uploads an image of a metal part → Producer uses CadQuery to generate a STEP 3D model → Grader checks geometry validity → if invalid, sends feedback for revision → loop until accepted.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 1: Parallelization -->
+      <div class="wa-panel" id="wa-p1">
+        <div class="wa-panel-inner">
+          <div class="wa-diagram">
+            <div class="wa-flow-row">
+              <div class="wa-box wa-box-in">Input</div>
+              <div class="wa-arr">→</div>
+              <div class="wa-sub-col">
+                <div class="wa-box wa-box-proc">Sub-task 1</div>
+                <div class="wa-box wa-box-proc">Sub-task 2</div>
+                <div class="wa-box wa-box-proc">Sub-task 3</div>
+              </div>
+              <div class="wa-arr">→</div>
+              <div class="wa-box wa-box-eval">Aggregate</div>
+              <div class="wa-arr">→</div>
+              <div class="wa-box wa-box-out">Output</div>
+            </div>
+          </div>
+          <div class="wa-example">
+            <div class="wa-example-label">Real-World Example</div>
+            <div class="wa-example-text">User uploads part images → three parallel sub-tasks each analyze a different material category (metals, polymers, ceramics) simultaneously → results aggregated into a final recommendation report.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 2: Chaining -->
+      <div class="wa-panel" id="wa-p2">
+        <div class="wa-panel-inner">
+          <div class="wa-diagram">
+            <div class="wa-flow-row">
+              <div class="wa-box wa-box-in">Input</div>
+              <div class="wa-arr">→</div>
+              <div class="wa-box wa-box-proc">Step 1<div class="wa-box-sub">Generate</div></div>
+              <div class="wa-arr">→</div>
+              <div class="wa-box wa-box-proc">Step 2<div class="wa-box-sub">Revise</div></div>
+              <div class="wa-arr">→</div>
+              <div class="wa-box wa-box-out">Output</div>
+            </div>
+          </div>
+          <div class="wa-example">
+            <div class="wa-example-label">Real-World Example</div>
+            <div class="wa-example-text">Write a technical article → Step 1: generate draft (accept imperfections) → Step 2: targeted revision (remove AI mentions, strip emojis, fix cringey tone) → final clean article. Each step stays focused.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 3: Routing -->
+      <div class="wa-panel" id="wa-p3">
+        <div class="wa-panel-inner">
+          <div class="wa-diagram">
+            <div class="wa-flow-row">
+              <div class="wa-box wa-box-in">Input</div>
+              <div class="wa-arr">→</div>
+              <div class="wa-box wa-box-eval">Classify</div>
+              <div class="wa-arr">→</div>
+              <div class="wa-sub-col">
+                <div class="wa-box wa-box-proc">Pipeline A</div>
+                <div class="wa-box wa-box-proc">Pipeline B</div>
+                <div class="wa-box wa-box-proc">Pipeline C</div>
+              </div>
+              <div class="wa-arr">→</div>
+              <div class="wa-box wa-box-out">Output</div>
+            </div>
+          </div>
+          <div class="wa-example">
+            <div class="wa-example-label">Real-World Example</div>
+            <div class="wa-example-text">Social media video script tool: classify the user's topic (educational / entertainment / promotional) → route to the matching specialized pipeline → each pipeline has its own optimized prompts and tools.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wa-callout">
+      <div class="wa-callout-icon">⚡</div>
+      <div><strong>Workflows &gt; Agents</strong> — Users want products that work reliably. Implement workflows wherever possible, and only resort to agents when the solution path genuinely cannot be predetermined in advance.</div>
+    </div>
+  </section>
+
+  <!-- ── 14. MCP ── -->
+  <section>
+    <h2>Introducing MCP</h2>
+    <p>Model Context Protocol is a communication layer that provides Claude with context and tools — without writing all the integration code yourself. MCP servers expose pre-built tool schemas and functions; you just connect to them.</p>
+
+    <div class="mcp-primitives">
+      <div class="mcp-prim-card">
+        <div class="mcp-prim-icon">🔧</div>
+        <div class="mcp-prim-name">Tools</div>
+        <div class="mcp-ctrl-badge mcp-ctrl-model">MODEL-CONTROLLED</div>
+        <div class="mcp-prim-desc">Claude decides when to call these functions. Results feed directly back to Claude to complete the task.</div>
+        <ul class="mcp-prim-uses">
+          <li>Extend Claude's capabilities</li>
+          <li>Run code, query APIs</li>
+          <li>Any action Claude should trigger</li>
+        </ul>
+      </div>
+      <div class="mcp-prim-card">
+        <div class="mcp-prim-icon">🗄️</div>
+        <div class="mcp-prim-name">Resources</div>
+        <div class="mcp-ctrl-badge mcp-ctrl-app">APP-CONTROLLED</div>
+        <div class="mcp-prim-desc">Your application code decides when to fetch data and how to use it — typically for UI or to add context before sending to Claude.</div>
+        <ul class="mcp-prim-uses">
+          <li>Populate autocomplete lists</li>
+          <li>Add context to messages</li>
+          <li>Display available documents</li>
+        </ul>
+      </div>
+      <div class="mcp-prim-card">
+        <div class="mcp-prim-icon">💬</div>
+        <div class="mcp-prim-name">Prompts</div>
+        <div class="mcp-ctrl-badge mcp-ctrl-user">USER-CONTROLLED</div>
+        <div class="mcp-prim-desc">Triggered by user actions — button clicks, menu selections, slash commands. Predefined workflows users invoke on demand.</div>
+        <ul class="mcp-prim-uses">
+          <li>Conversation starters</li>
+          <li>Common task templates</li>
+          <li>Specialized workflows</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>How a Query Flows Through MCP</h3>
+    <div class="mcp-flow-wrap">
+      <div class="mcp-flow-tabs">
+        <div class="mcp-flow-tab active" onclick="mcpGoTo(0)">1 · Architecture</div>
+        <div class="mcp-flow-tab" onclick="mcpGoTo(1)">2 · Tool Discovery</div>
+        <div class="mcp-flow-tab" onclick="mcpGoTo(2)">3 · Claude Request</div>
+        <div class="mcp-flow-tab" onclick="mcpGoTo(3)">4 · Tool Execution</div>
+        <div class="mcp-flow-tab" onclick="mcpGoTo(4)">5 · Final Response</div>
+      </div>
+
+      <!-- Panel 0: Architecture -->
+      <div class="mcp-flow-panel visible" id="mcp-p0">
+        <div class="mcp-flow-desc">Your server sits at the center: it talks to <strong>Claude API</strong> to process language, and to an <strong>MCP Client</strong> to access external tools. The MCP Client connects to one or more <strong>MCP Servers</strong> which call real external services.</div>
+        <div class="mcp-arch-diagram">
+          <div class="mcp-arch-row">
+            <div class="mcp-arch-row-label">App</div>
+            <div class="mcp-node green" id="mcp-n-user">User</div>
+            <div class="mcp-narr green">⟷</div>
+            <div class="mcp-node green" id="mcp-n-server">Your Server</div>
+            <div class="mcp-narr green">⟷</div>
+            <div class="mcp-node green" id="mcp-n-claude">Claude API</div>
+          </div>
+          <div class="mcp-arch-row">
+            <div class="mcp-arch-row-label">MCP</div>
+            <div class="mcp-node" style="visibility:hidden;padding:5px 10px;">.</div>
+            <div class="mcp-narr" style="visibility:hidden;">⟷</div>
+            <div class="mcp-node green" id="mcp-n-client">MCP Client</div>
+            <div class="mcp-narr green">⟷</div>
+            <div class="mcp-node green" id="mcp-n-mcpserver">MCP Server</div>
+            <div class="mcp-narr green">→</div>
+            <div class="mcp-node green" id="mcp-n-extapi">Ext. APIs</div>
+          </div>
+        </div>
+        <div class="mcp-detail-grid">
+          <div class="mcp-detail-card">
+            <div class="mcp-detail-title">What MCP Saves You</div>
+            <p>MCP servers ship pre-built tool schemas and handler functions. Without MCP you'd write every tool definition, schema, and API integration yourself.</p>
+          </div>
+          <div class="mcp-detail-card">
+            <div class="mcp-detail-title">Typical Setup</div>
+            <p>Client and server usually run on the same machine, communicating via stdio. HTTP and WebSocket connections are also supported for remote servers.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 1: Tool Discovery -->
+      <div class="mcp-flow-panel" id="mcp-p1">
+        <div class="mcp-flow-desc">Before sending anything to Claude, your server needs to know which tools are available. It asks the MCP Client, which sends a <strong>ListToolsRequest</strong> to the MCP Server and gets back a <strong>ListToolsResult</strong>.</div>
+        <div class="mcp-arch-diagram">
+          <div class="mcp-arch-row">
+            <div class="mcp-arch-row-label">App</div>
+            <div class="mcp-node" id="mcp-p1-user">User</div>
+            <div class="mcp-narr">⟷</div>
+            <div class="mcp-node blue" id="mcp-p1-server">Your Server</div>
+            <div class="mcp-narr">⟷</div>
+            <div class="mcp-node" id="mcp-p1-claude">Claude API</div>
+          </div>
+          <div class="mcp-arch-row">
+            <div class="mcp-arch-row-label">MCP</div>
+            <div class="mcp-node" style="visibility:hidden;padding:5px 10px;">.</div>
+            <div class="mcp-narr" style="visibility:hidden;">⟷</div>
+            <div class="mcp-node green" id="mcp-p1-client">MCP Client</div>
+            <div class="mcp-narr green">⟷</div>
+            <div class="mcp-node green" id="mcp-p1-mcpserver">MCP Server</div>
+            <div class="mcp-narr">→</div>
+            <div class="mcp-node" id="mcp-p1-extapi">Ext. APIs</div>
+          </div>
+        </div>
+        <div class="mcp-detail-grid">
+          <div class="mcp-detail-card">
+            <div class="mcp-detail-title">Request</div>
+            <div class="mcp-msg-badge mcp-badge-req">ListToolsRequest</div>
+            <p>Sent by the MCP Client to enumerate all tools the server exposes. No arguments needed.</p>
+          </div>
+          <div class="mcp-detail-card">
+            <div class="mcp-detail-title">Response</div>
+            <div class="mcp-msg-badge mcp-badge-res">ListToolsResult</div>
+            <p>Returns a list of tool schemas — name, description, and input_schema — ready to include in the Claude request.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 2: Claude Request -->
+      <div class="mcp-flow-panel" id="mcp-p2">
+        <div class="mcp-flow-desc">With the tool list in hand, your server sends the user's query <em>plus</em> the available tool schemas to <strong>Claude API</strong>. Claude reads the descriptions and decides whether — and which — tool to call.</div>
+        <div class="mcp-arch-diagram">
+          <div class="mcp-arch-row">
+            <div class="mcp-arch-row-label">App</div>
+            <div class="mcp-node" id="mcp-p2-user">User</div>
+            <div class="mcp-narr">⟷</div>
+            <div class="mcp-node blue" id="mcp-p2-server">Your Server</div>
+            <div class="mcp-narr blue">⟷</div>
+            <div class="mcp-node blue" id="mcp-p2-claude">Claude API</div>
+          </div>
+          <div class="mcp-arch-row">
+            <div class="mcp-arch-row-label">MCP</div>
+            <div class="mcp-node" style="visibility:hidden;padding:5px 10px;">.</div>
+            <div class="mcp-narr" style="visibility:hidden;">⟷</div>
+            <div class="mcp-node" id="mcp-p2-client">MCP Client</div>
+            <div class="mcp-narr">⟷</div>
+            <div class="mcp-node" id="mcp-p2-mcpserver">MCP Server</div>
+            <div class="mcp-narr">→</div>
+            <div class="mcp-node" id="mcp-p2-extapi">Ext. APIs</div>
+          </div>
+        </div>
+        <div class="mcp-detail-grid">
+          <div class="mcp-detail-card">
+            <div class="mcp-detail-title">Sent to Claude</div>
+            <p>User's message + the full list of tool schemas from ListToolsResult. Claude uses the <code style="color:#f6ad55;font-size:0.78rem">description</code> field to decide when a tool is appropriate.</p>
+          </div>
+          <div class="mcp-detail-card">
+            <div class="mcp-detail-title">Claude's Response</div>
+            <p>If a tool is needed: <code style="color:#f6ad55;font-size:0.78rem">stop_reason: "tool_use"</code> with a <code style="color:#f6ad55;font-size:0.78rem">tool_use</code> block naming the tool and its arguments.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 3: Tool Execution -->
+      <div class="mcp-flow-panel" id="mcp-p3">
+        <div class="mcp-flow-desc">Your server asks the MCP Client to execute the tool Claude specified. The client sends a <strong>CallToolRequest</strong> to the MCP Server, which makes the actual external API call and returns a <strong>CallToolResult</strong>.</div>
+        <div class="mcp-arch-diagram">
+          <div class="mcp-arch-row">
+            <div class="mcp-arch-row-label">App</div>
+            <div class="mcp-node" id="mcp-p3-user">User</div>
+            <div class="mcp-narr">⟷</div>
+            <div class="mcp-node blue" id="mcp-p3-server">Your Server</div>
+            <div class="mcp-narr">⟷</div>
+            <div class="mcp-node" id="mcp-p3-claude">Claude API</div>
+          </div>
+          <div class="mcp-arch-row">
+            <div class="mcp-arch-row-label">MCP</div>
+            <div class="mcp-node" style="visibility:hidden;padding:5px 10px;">.</div>
+            <div class="mcp-narr" style="visibility:hidden;">⟷</div>
+            <div class="mcp-node green" id="mcp-p3-client">MCP Client</div>
+            <div class="mcp-narr green">⟷</div>
+            <div class="mcp-node green" id="mcp-p3-mcpserver">MCP Server</div>
+            <div class="mcp-narr green">→</div>
+            <div class="mcp-node green" id="mcp-p3-extapi">Ext. APIs</div>
+          </div>
+        </div>
+        <div class="mcp-detail-grid">
+          <div class="mcp-detail-card">
+            <div class="mcp-detail-title">Request</div>
+            <div class="mcp-msg-badge mcp-badge-req">CallToolRequest</div>
+            <p>Contains the tool name and the exact arguments Claude specified in its <code style="color:#f6ad55;font-size:0.78rem">tool_use</code> block.</p>
+          </div>
+          <div class="mcp-detail-card">
+            <div class="mcp-detail-title">Response</div>
+            <div class="mcp-msg-badge mcp-badge-res">CallToolResult</div>
+            <p>The execution result — e.g., a list of GitHub repositories — returned by the external API and wrapped by the MCP Server.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 4: Final Response -->
+      <div class="mcp-flow-panel" id="mcp-p4">
+        <div class="mcp-flow-desc">Your server sends the tool result back to <strong>Claude API</strong> as a <code style="color:#f6ad55;font-family:monospace;font-size:0.85rem">tool_result</code> block. Claude incorporates the data and generates a final natural language answer, which your server delivers to the <strong>User</strong>.</div>
+        <div class="mcp-arch-diagram">
+          <div class="mcp-arch-row">
+            <div class="mcp-arch-row-label">App</div>
+            <div class="mcp-node green" id="mcp-p4-user">User</div>
+            <div class="mcp-narr green">⟷</div>
+            <div class="mcp-node green" id="mcp-p4-server">Your Server</div>
+            <div class="mcp-narr green">⟷</div>
+            <div class="mcp-node green" id="mcp-p4-claude">Claude API</div>
+          </div>
+          <div class="mcp-arch-row">
+            <div class="mcp-arch-row-label">MCP</div>
+            <div class="mcp-node" style="visibility:hidden;padding:5px 10px;">.</div>
+            <div class="mcp-narr" style="visibility:hidden;">⟷</div>
+            <div class="mcp-node" id="mcp-p4-client">MCP Client</div>
+            <div class="mcp-narr">⟷</div>
+            <div class="mcp-node" id="mcp-p4-mcpserver">MCP Server</div>
+            <div class="mcp-narr">→</div>
+            <div class="mcp-node" id="mcp-p4-extapi">Ext. APIs</div>
+          </div>
+        </div>
+        <div class="mcp-detail-grid">
+          <div class="mcp-detail-card">
+            <div class="mcp-detail-title">Sent to Claude</div>
+            <p>A <code style="color:#f6ad55;font-size:0.78rem">tool_result</code> message containing the external API data. Claude uses this to compose a grounded, accurate answer.</p>
+          </div>
+          <div class="mcp-detail-card">
+            <div class="mcp-detail-title">Delivered to User</div>
+            <p>Claude returns a final response with <code style="color:#f6ad55;font-size:0.78rem">stop_reason: "end_turn"</code>. Your server extracts the text and sends it back to the user.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo-controls">
+        <button class="btn btn-ghost" id="mcpPrev" onclick="mcpNav(-1)" disabled>← Prev</button>
+        <button class="btn btn-primary" id="mcpNext" onclick="mcpNav(1)">Next →</button>
+        <span class="step-indicator" id="mcpIndicator">Step 1 of 5</span>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <script>
@@ -2949,6 +3492,47 @@ tuGoTo(0);
 
 /* ── Init ── */
 showStage(1);
+
+/* ═══════════════════════════════════
+   WORKFLOWS & AGENTS
+═══════════════════════════════════ */
+let waStep = 0;
+const WA_MAX = 3;
+
+function waGoTo(n) {
+  const tabs = document.querySelectorAll('.wa-tab');
+  const panels = document.querySelectorAll('.wa-panel');
+  tabs.forEach((t, i) => t.classList.toggle('active', i === n));
+  panels.forEach((p, i) => p.classList.toggle('visible', i === n));
+  waStep = n;
+}
+
+/* ═══════════════════════════════════
+   MCP FLOW
+═══════════════════════════════════ */
+let mcpStep = 0;
+const MCP_MAX = 4;
+
+function mcpGoTo(n) {
+  const tabs = document.querySelectorAll('.mcp-flow-tab');
+  const panels = document.querySelectorAll('.mcp-flow-panel');
+  tabs.forEach((t, i) => {
+    t.classList.remove('active', 'done');
+    if (i === n) t.classList.add('active');
+    else if (i < n) t.classList.add('done');
+  });
+  panels.forEach((p, i) => p.classList.toggle('visible', i === n));
+  mcpStep = n;
+  document.getElementById('mcpPrev').disabled = n === 0;
+  const nextBtn = document.getElementById('mcpNext');
+  nextBtn.disabled    = n === MCP_MAX;
+  nextBtn.textContent = n === MCP_MAX ? 'Done ✓' : 'Next →';
+  document.getElementById('mcpIndicator').textContent = `Step ${n + 1} of ${MCP_MAX + 1}`;
+}
+
+function mcpNav(dir) { mcpGoTo(mcpStep + dir); }
+
+mcpGoTo(0);
 </script>
 </body>
 </html>
