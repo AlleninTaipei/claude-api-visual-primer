@@ -1092,6 +1092,46 @@
     }
     .mcp-badge-req { background: #1a2a4a; color: #90cdf4; }
     .mcp-badge-res { background: #1c3a2a; color: #68d391; }
+
+    /* ══════════════════════════════════
+       RAG SECTION
+    ══════════════════════════════════ */
+    .rag-list { list-style: none; margin: 10px 0 14px; padding: 0; }
+    .rag-list li { color: #a0aec0; font-size: 0.88rem; padding: 3px 0; padding-left: 16px; position: relative; }
+    .rag-list li::before { content: "•"; color: #4299e1; position: absolute; left: 0; }
+
+    .rag-chunking-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
+    .rag-chunk-card { background: #1a202c; border: 1px solid #2d3748; border-radius: 8px; padding: 14px 16px; }
+    .rag-chunk-label { font-size: 0.72rem; font-weight: 700; color: #63b3ed; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .rag-chunk-desc { font-size: 0.82rem; color: #718096; line-height: 1.55; }
+
+    .rag-step-wrap { margin: 20px 0; display: flex; flex-direction: column; gap: 10px; }
+    .rag-step { background: #1a202c; border: 1px solid #2d3748; border-radius: 8px; padding: 16px 20px; }
+    .rag-step-num { font-size: 0.7rem; font-weight: 700; color: #63b3ed; letter-spacing: 0.08em; margin-bottom: 5px; }
+    .rag-step-title { font-size: 0.95rem; font-weight: 600; color: #e2e8f0; margin-bottom: 8px; }
+    .rag-step-body { font-size: 0.85rem; color: #a0aec0; line-height: 1.6; }
+
+    .rag-embed-example { background: #0d1117; border: 1px solid #2d3748; border-radius: 8px; padding: 14px 16px; margin-top: 12px; }
+    .rag-embed-row { display: flex; gap: 20px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid #2d3748; }
+    .rag-embed-row:last-child { border-bottom: none; }
+    .rag-embed-section { font-size: 0.82rem; color: #a0aec0; flex: 1; padding-top: 2px; }
+    .rag-embed-vec { font-family: monospace; font-size: 0.88rem; color: #f6ad55; font-weight: 600; }
+    .rag-embed-note { font-size: 0.72rem; color: #4a5568; margin-top: 3px; }
+
+    .rag-cosine-result { display: flex; gap: 12px; margin: 12px 0; }
+    .rag-cosine-card { flex: 1; border-radius: 8px; padding: 14px 16px; }
+    .rag-cosine-card.high { background: #162620; border: 1px solid #276749; }
+    .rag-cosine-card.low  { background: #1a202c; border: 1px solid #2d3748; }
+    .rag-cosine-label { font-size: 0.75rem; color: #718096; margin-bottom: 5px; }
+    .rag-cosine-score { font-family: monospace; font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+    .rag-cosine-card.high .rag-cosine-score { color: #68d391; }
+    .rag-cosine-card.low  .rag-cosine-score { color: #a0aec0; }
+    .rag-cosine-desc { font-size: 0.75rem; color: #4a5568; }
+
+    .rag-tradeoffs { margin: 14px 0; display: flex; flex-direction: column; gap: 8px; }
+    .rag-tradeoff { display: flex; gap: 10px; align-items: baseline; }
+    .rag-tradeoff-icon { font-size: 0.85rem; min-width: 18px; }
+    .rag-tradeoff-text { font-size: 0.85rem; color: #a0aec0; }
   </style>
 </head>
 <body>
@@ -2499,6 +2539,328 @@ messages.<span class="fn">append</span>({<span class="str">"role"</span>: <span 
         <button class="btn btn-primary" id="mcpNext" onclick="mcpNav(1)">Next →</button>
         <span class="step-indicator" id="mcpIndicator">Step 1 of 5</span>
       </div>
+    </div>
+  </section>
+
+  <!-- ── 15. Retrieval Augmented Generation ── -->
+  <section>
+    <h2>Retrieval Augmented Generation</h2>
+    <p>Large language models like Claude are trained on data up to a certain point in time and have no access to your private documents or real-time information. Retrieval-Augmented Generation (RAG) solves this by dynamically fetching relevant information from your own data sources and injecting it into the prompt before Claude generates a response. Instead of retraining the model, you bring the knowledge to it at query time.</p>
+
+    <div class="info-box">
+      <div class="tag">RAG CORE COMPONENTS</div>
+      <ul class="rag-list" style="margin-bottom:0">
+        <li>Document preprocessing and chunking</li>
+        <li>A search mechanism to find relevant chunks</li>
+        <li>Intelligent selection of which chunks to include in prompts</li>
+      </ul>
+    </div>
+
+    <h3>Text Chunking Strategies</h3>
+    <p>Before documents can be searched they must be split into smaller pieces called <em>chunks</em>. Three common strategies — each suited to different document types:</p>
+
+    <p style="margin-bottom:6px"><strong style="color:#e2e8f0">Chunk by character count</strong></p>
+    <pre class="code-block"><span class="kw">def</span> <span class="fn">chunk_by_char</span>(text, chunk_size=<span class="str">150</span>, chunk_overlap=<span class="str">20</span>):
+    chunks = []
+    start_idx = <span class="str">0</span>
+
+    <span class="kw">while</span> start_idx &lt; <span class="fn">len</span>(text):
+        end_idx = <span class="fn">min</span>(start_idx + chunk_size, <span class="fn">len</span>(text))
+        chunk_text = text[start_idx:end_idx]
+        chunks.<span class="fn">append</span>(chunk_text)
+        start_idx = (
+            end_idx - chunk_overlap <span class="kw">if</span> end_idx &lt; <span class="fn">len</span>(text) <span class="kw">else</span> <span class="fn">len</span>(text)
+        )
+
+    <span class="kw">return</span> chunks</pre>
+
+    <p style="margin-top:16px;margin-bottom:6px"><strong style="color:#e2e8f0">Chunk by sentence</strong></p>
+    <pre class="code-block"><span class="kw">import</span> re
+
+<span class="kw">def</span> <span class="fn">chunk_by_sentence</span>(text, max_sentences_per_chunk=<span class="str">5</span>, overlap_sentences=<span class="str">1</span>):
+    sentences = re.<span class="fn">split</span>(<span class="str">r"(?&lt;=[.!?])\s+"</span>, text)
+    chunks = []
+    start_idx = <span class="str">0</span>
+
+    <span class="kw">while</span> start_idx &lt; <span class="fn">len</span>(sentences):
+        end_idx = <span class="fn">min</span>(start_idx + max_sentences_per_chunk, <span class="fn">len</span>(sentences))
+        chunks.<span class="fn">append</span>(<span class="str">" "</span>.<span class="fn">join</span>(sentences[start_idx:end_idx]))
+        start_idx += max_sentences_per_chunk - overlap_sentences
+        <span class="kw">if</span> start_idx &lt; <span class="str">0</span>:
+            start_idx = <span class="str">0</span>
+
+    <span class="kw">return</span> chunks</pre>
+
+    <p style="margin-top:16px;margin-bottom:6px"><strong style="color:#e2e8f0">Chunk by document section</strong></p>
+    <pre class="code-block"><span class="kw">def</span> <span class="fn">chunk_by_section</span>(document_text):
+    pattern = <span class="str">r"\n## "</span>
+    <span class="kw">return</span> re.<span class="fn">split</span>(pattern, document_text)</pre>
+
+    <p>Chunking is often an iterative process — start simple, test on real documents, then refine. The right strategy depends on your data:</p>
+
+    <div class="rag-chunking-grid">
+      <div class="rag-chunk-card">
+        <div class="rag-chunk-label">CONSISTENT STRUCTURE</div>
+        <div class="rag-chunk-desc">Use section-based chunking for the cleanest results when documents follow a predictable format.</div>
+      </div>
+      <div class="rag-chunk-card">
+        <div class="rag-chunk-label">MIXED DOCUMENT TYPES</div>
+        <div class="rag-chunk-desc">Sentence-based chunking works well across varied document styles and lengths.</div>
+      </div>
+      <div class="rag-chunk-card">
+        <div class="rag-chunk-label">CODE &amp; TECHNICAL CONTENT</div>
+        <div class="rag-chunk-desc">Chunk by function or class boundaries when possible. Character-based is a last resort — it can split code mid-function.</div>
+      </div>
+      <div class="rag-chunk-card">
+        <div class="rag-chunk-label">UNKNOWN FORMATS</div>
+        <div class="rag-chunk-desc">Character-based chunking with overlap is the safest default when document structure is unpredictable.</div>
+      </div>
+    </div>
+
+    <h3>Text Embeddings &amp; Semantic Search</h3>
+    <p>Unlike traditional keyword-based search, semantic search uses text embeddings to understand the actual <em>meaning</em> of both the user's question and each text chunk — finding conceptually related content even when the exact words don't match.</p>
+
+    <pre class="code-block"><span class="kw">import</span> voyageai
+
+vo = voyageai.<span class="fn">Client</span>()
+
+<span class="kw">def</span> <span class="fn">generate_embedding</span>(text):
+    response = vo.<span class="fn">embed</span>([text], <span class="key">model</span>=<span class="str">"voyage-3"</span>)
+    <span class="kw">return</span> response.embeddings[<span class="str">0</span>]</pre>
+
+    <div class="info-box" style="margin-top:16px">
+      <div class="tag">HOW EMBEDDINGS WORK</div>
+      <p>An embedding is a long list of numbers produced by an embedding model for a given piece of text. The individual dimension values are not constrained to a fixed range — it is the <strong>cosine similarity</strong> computed between two unit-normalized embeddings that falls between −1 and +1. These numbers collectively encode the semantic qualities and features of the input text, enabling mathematical comparison between different pieces of content.</p>
+    </div>
+
+    <h3>RAG Pipeline — Step by Step</h3>
+    <p>To illustrate the full pipeline, consider an imaginary 2D embedding model that returns exactly two numbers per chunk: one for "how medical" the text is, one for "how software-related" it is.</p>
+
+    <div class="rag-step-wrap">
+      <div class="rag-step">
+        <div class="rag-step-num">STEP 1</div>
+        <div class="rag-step-title">Chunk Your Source Text</div>
+        <div class="rag-step-body">Split your document into chunks. Our example uses two sections from a company annual report:
+          <ul class="rag-list" style="margin-top:8px;margin-bottom:0">
+            <li><strong style="color:#e2e8f0">Medical Research:</strong> "This year saw significant strides in our understanding of XDR-47, a 'bug' we have not seen before."</li>
+            <li><strong style="color:#e2e8f0">Software Engineering:</strong> "This division dedicated significant effort to studying various infection vectors in our distributed systems."</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="rag-step">
+        <div class="rag-step-num">STEP 2</div>
+        <div class="rag-step-title">Generate Embeddings for Each Chunk</div>
+        <div class="rag-step-body">
+          Each chunk is passed through the embedding model:
+          <div class="rag-embed-example">
+            <div class="rag-embed-row">
+              <div class="rag-embed-section">Medical Research section</div>
+              <div>
+                <div class="rag-embed-vec">[0.97, 0.34] → [0.944, 0.331]</div>
+                <div class="rag-embed-note">High medical score; "bug" adds a small SW component</div>
+              </div>
+            </div>
+            <div class="rag-embed-row">
+              <div class="rag-embed-section">Software Engineering section</div>
+              <div>
+                <div class="rag-embed-vec">[0.30, 0.97] → [0.295, 0.955]</div>
+                <div class="rag-embed-note">High SW score; "infection vectors" adds a small medical component</div>
+              </div>
+            </div>
+          </div>
+          <p style="margin-top:10px;margin-bottom:0;font-size:0.83rem">Before storage, each vector is <strong style="color:#e2e8f0">normalized</strong> to a magnitude of 1.0 (typically handled automatically by the embedding API). Both normalized points lie exactly on the edge of a unit circle.</p>
+        </div>
+      </div>
+
+      <div class="rag-step">
+        <div class="rag-step-num">STEP 3</div>
+        <div class="rag-step-title">Create a Vector Store</div>
+        <div class="rag-step-body">The normalized embeddings are stored in a <strong style="color:#e2e8f0">vector database</strong> — a specialized database optimized for storing and comparing long lists of numbers efficiently.</div>
+      </div>
+
+      <div class="rag-step">
+        <div class="rag-step-num">STEP 4</div>
+        <div class="rag-step-title">Process User Query and Build the Final Prompt</div>
+        <div class="rag-step-body">
+          When a user asks <em>"What did the software engineering department do this year?"</em>, the query runs through the same embedding model: <span style="font-family:monospace;color:#f6ad55">[0.1, 0.89]</span> → normalized to <span style="font-family:monospace;color:#f6ad55">[0.112, 0.993]</span>.
+          <p style="margin-top:10px;margin-bottom:8px;font-size:0.83rem">The vector database finds the closest stored embedding using <strong style="color:#e2e8f0">cosine similarity</strong> — the cosine of the angle between two vectors (1.0 = same direction, 0.0 = perpendicular, −1.0 = opposite):</p>
+          <div class="rag-cosine-result">
+            <div class="rag-cosine-card high">
+              <div class="rag-cosine-label">vs. Software Engineering</div>
+              <div class="rag-cosine-score">0.983</div>
+              <div class="rag-cosine-desc">Very similar — vectors nearly parallel</div>
+            </div>
+            <div class="rag-cosine-card low">
+              <div class="rag-cosine-label">vs. Medical Research</div>
+              <div class="rag-cosine-score">0.434</div>
+              <div class="rag-cosine-desc">Less similar — vectors diverge significantly</div>
+            </div>
+          </div>
+          <p style="margin-top:10px;margin-bottom:0;font-size:0.83rem">The software engineering chunk wins. It is combined with the user's question into a final prompt for Claude:</p>
+        </div>
+      </div>
+    </div>
+
+    <pre class="code-block"><span class="str">"Answer the user's question about the company annual report."</span>
+
+&lt;user_question&gt;
+What did the software engineering department do this year?
+&lt;/user_question&gt;
+
+&lt;report&gt;
+## Section 2: Software Engineering
+This division dedicated significant effort to studying various infection vectors in our distributed systems
+&lt;/report&gt;</pre>
+
+    <div class="info-box" style="margin-top:16px">
+      <div class="tag">COSINE DISTANCE</div>
+      <p>Vector database docs often show <strong>cosine distance</strong> instead of similarity. It is simply <code style="color:#f6ad55;font-size:0.82rem">1 − cosine similarity</code>, flipping the scale so smaller = more similar: 0.0 (identical), 1.0 (perpendicular), 2.0 (opposite).</p>
+    </div>
+
+    <h3>Advanced: Hybrid Search &amp; Reranking</h3>
+    <p>Semantic search alone can miss exact keyword matches. <strong style="color:#e2e8f0">Hybrid search</strong> combines vector (semantic) search with <strong style="color:#e2e8f0">BM25</strong> lexical search to capture the best of both approaches.</p>
+    <p>Because vector similarity scores and BM25 relevance scores operate on incompatible scales, results are merged using <strong style="color:#e2e8f0">Reciprocal Rank Fusion (RRF)</strong> — a rank-based technique that focuses on position rather than raw score value.</p>
+
+    <pre class="code-block"><span class="cmt"># Retriever — wraps any number of SearchIndex instances with optional reranking</span>
+<span class="kw">from</span> typing <span class="kw">import</span> Any, List, Dict, Tuple, Protocol, Callable, Optional
+<span class="kw">import</span> random, string
+
+
+<span class="kw">class</span> <span class="fn">SearchIndex</span>(Protocol):
+    <span class="kw">def</span> <span class="fn">add_document</span>(self, document: Dict[str, Any]) -&gt; <span class="kw">None</span>: ...
+    <span class="kw">def</span> <span class="fn">add_documents</span>(self, documents: List[Dict[str, Any]]) -&gt; <span class="kw">None</span>: ...
+    <span class="kw">def</span> <span class="fn">search</span>(self, query: Any, k: int = <span class="str">1</span>) -&gt; List[Tuple[Dict[str, Any], float]]: ...
+
+
+<span class="kw">class</span> <span class="fn">Retriever</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, *indexes: SearchIndex,
+                 reranker_fn: Optional[Callable] = <span class="kw">None</span>):
+        <span class="kw">if</span> <span class="fn">len</span>(indexes) == <span class="str">0</span>:
+            <span class="kw">raise</span> <span class="fn">ValueError</span>(<span class="str">"At least one index must be provided"</span>)
+        self._indexes = <span class="fn">list</span>(indexes)
+        self._reranker_fn = reranker_fn
+
+    <span class="kw">def</span> <span class="fn">add_document</span>(self, document: Dict[str, Any]):
+        <span class="kw">if</span> <span class="str">"id"</span> <span class="kw">not in</span> document:
+            document[<span class="str">"id"</span>] = <span class="str">""</span>.<span class="fn">join</span>(random.<span class="fn">choices</span>(string.ascii_letters + string.digits, k=<span class="str">4</span>))
+        <span class="kw">for</span> index <span class="kw">in</span> self._indexes:
+            index.<span class="fn">add_document</span>(document)
+
+    <span class="kw">def</span> <span class="fn">search</span>(self, query_text: str, k: int = <span class="str">1</span>, k_rrf: int = <span class="str">60</span>):
+        all_results = [index.<span class="fn">search</span>(query_text, k=k * <span class="str">5</span>) <span class="kw">for</span> index <span class="kw">in</span> self._indexes]
+
+        doc_ranks = {}
+        <span class="kw">for</span> idx, results <span class="kw">in</span> <span class="fn">enumerate</span>(all_results):
+            <span class="kw">for</span> rank, (doc, _) <span class="kw">in</span> <span class="fn">enumerate</span>(results):
+                doc_id = <span class="fn">id</span>(doc)
+                <span class="kw">if</span> doc_id <span class="kw">not in</span> doc_ranks:
+                    doc_ranks[doc_id] = {<span class="str">"doc_obj"</span>: doc, <span class="str">"ranks"</span>: [<span class="fn">float</span>(<span class="str">"inf"</span>)] * <span class="fn">len</span>(self._indexes)}
+                doc_ranks[doc_id][<span class="str">"ranks"</span>][idx] = rank + <span class="str">1</span>
+
+        <span class="kw">def</span> <span class="fn">calc_rrf</span>(ranks):
+            <span class="kw">return</span> <span class="fn">sum</span>(<span class="str">1.0</span> / (k_rrf + r) <span class="kw">for</span> r <span class="kw">in</span> ranks <span class="kw">if</span> r != <span class="fn">float</span>(<span class="str">"inf"</span>))
+
+        scored = [(v[<span class="str">"doc_obj"</span>], <span class="fn">calc_rrf</span>(v[<span class="str">"ranks"</span>])) <span class="kw">for</span> v <span class="kw">in</span> doc_ranks.<span class="fn">values</span>()]
+        scored = [(d, s) <span class="kw">for</span> d, s <span class="kw">in</span> scored <span class="kw">if</span> s &gt; <span class="str">0</span>]
+        scored.<span class="fn">sort</span>(key=<span class="kw">lambda</span> x: x[<span class="str">1</span>], reverse=<span class="kw">True</span>)
+        result = scored[:k]
+
+        <span class="kw">if</span> self._reranker_fn <span class="kw">is not None</span>:
+            docs_only = [d <span class="kw">for</span> d, _ <span class="kw">in</span> result]
+            reranked_ids = self._reranker_fn(docs_only, query_text, k)
+            lookup = {d[<span class="str">"id"</span>]: d <span class="kw">for</span> d <span class="kw">in</span> docs_only}
+            scores = {<span class="fn">id</span>(d): s <span class="kw">for</span> d, s <span class="kw">in</span> result}
+            result = [(lookup[i], scores.<span class="fn">get</span>(<span class="fn">id</span>(lookup[i]), <span class="str">0.0</span>))
+                      <span class="kw">for</span> i <span class="kw">in</span> reranked_ids <span class="kw">if</span> i <span class="kw">in</span> lookup]
+
+        <span class="kw">return</span> result</pre>
+
+    <h3>Reranking</h3>
+    <p>Re-ranking adds a final LLM-powered step after hybrid search. Instead of relying on similarity scores alone, Claude re-reads the retrieved chunks and returns them reordered by relevance to the user's actual query.</p>
+    <p>To avoid wasting tokens re-copying large documents, assign each chunk a unique ID upfront — then ask Claude to return just the IDs in ranked order.</p>
+
+    <pre class="code-block"><span class="kw">def</span> <span class="fn">reranker_fn</span>(docs, query_text, k):
+    joined_docs = <span class="str">"\n"</span>.<span class="fn">join</span>([
+        <span class="str">f"&lt;document&gt;&lt;document_id&gt;{doc['id']}&lt;/document_id&gt;"</span>
+        <span class="str">f"&lt;document_content&gt;{doc['content']}&lt;/document_content&gt;&lt;/document&gt;"</span>
+        <span class="kw">for</span> doc <span class="kw">in</span> docs
+    ])
+
+    prompt = <span class="str">f"""
+    Select and sort the {k} most relevant documents to answer the user's question.
+
+    &lt;question&gt;{query_text}&lt;/question&gt;
+    &lt;documents&gt;{joined_docs}&lt;/documents&gt;
+
+    Respond as JSON: {{"document_ids": [list of {k} ids, most relevant first]}}
+    """</span>
+
+    messages = []
+    <span class="fn">add_user_message</span>(messages, prompt)
+    <span class="fn">add_assistant_message</span>(messages, <span class="str">"```json"</span>)
+    result = <span class="fn">chat</span>(messages, <span class="key">stop_sequences</span>=[<span class="str">"```"</span>])
+    <span class="kw">return</span> json.<span class="fn">loads</span>(<span class="fn">text_from_message</span>(result))[<span class="str">"document_ids"</span>]
+
+<span class="cmt"># Wire the reranker into the Retriever:</span>
+retriever = <span class="fn">Retriever</span>(bm25_index, vector_index, <span class="key">reranker_fn</span>=reranker_fn)</pre>
+
+    <div class="rag-tradeoffs">
+      <div class="rag-tradeoff">
+        <span class="rag-tradeoff-icon" style="color:#f6ad55">↑</span>
+        <span class="rag-tradeoff-text"><strong style="color:#e2e8f0">Increased latency</strong> — each search now waits for an additional LLM call to complete</span>
+      </div>
+      <div class="rag-tradeoff">
+        <span class="rag-tradeoff-icon" style="color:#68d391">✓</span>
+        <span class="rag-tradeoff-text"><strong style="color:#e2e8f0">Improved accuracy</strong> — Claude understands context and intent better than pure similarity scores</span>
+      </div>
+      <div class="rag-tradeoff">
+        <span class="rag-tradeoff-icon" style="color:#f6ad55">$</span>
+        <span class="rag-tradeoff-text"><strong style="color:#e2e8f0">Additional cost</strong> — each search incurs an extra LLM API call</span>
+      </div>
+    </div>
+
+    <h3>Contextual Retrieval</h3>
+    <p>When a document is split into chunks, each chunk loses its connection to the broader document. Contextual retrieval fixes this by prepending a short LLM-generated summary that situates each chunk within the whole document <em>before</em> indexing.</p>
+    <ul class="rag-list">
+      <li>Take each individual chunk and the original source document</li>
+      <li>Send both to Claude with a prompt asking it to add context</li>
+      <li>Claude generates a short snippet that "situates" the chunk within the larger document</li>
+      <li>Combine this context with the original chunk to create a "contextualized chunk"</li>
+      <li>Index the contextualized chunk in your vector and BM25 stores</li>
+    </ul>
+
+    <pre class="code-block"><span class="kw">def</span> <span class="fn">add_context</span>(text_chunk, source_text):
+    prompt = <span class="str">f"""Write a short and succinct snippet of text to situate this chunk within
+    the overall source document for the purposes of improving search retrieval.
+
+    &lt;document&gt;{source_text}&lt;/document&gt;
+    &lt;chunk&gt;{text_chunk}&lt;/chunk&gt;
+
+    Answer only with the succinct context and nothing else."""</span>
+
+    messages = []
+    <span class="fn">add_user_message</span>(messages, prompt)
+    result = <span class="fn">chat</span>(messages)
+    <span class="kw">return</span> <span class="fn">text_from_message</span>(result) + <span class="str">"\n"</span> + text_chunk</pre>
+
+    <p>For large documents, use a sliding-window approach to keep context representative without overwhelming the model:</p>
+
+    <pre class="code-block"><span class="cmt"># Add context to each chunk, then add to the retriever</span>
+num_start_chunks = <span class="str">2</span>
+num_prev_chunks  = <span class="str">2</span>
+
+<span class="kw">for</span> i, chunk <span class="kw">in</span> <span class="fn">enumerate</span>(chunks):
+    context_parts = []
+    context_parts.<span class="fn">extend</span>(chunks[: <span class="fn">min</span>(num_start_chunks, <span class="fn">len</span>(chunks))])  <span class="cmt"># doc preamble</span>
+    start_idx = <span class="fn">max</span>(<span class="str">0</span>, i - num_prev_chunks)
+    context_parts.<span class="fn">extend</span>(chunks[start_idx:i])                           <span class="cmt"># preceding chunks</span>
+    context = <span class="str">"\n"</span>.<span class="fn">join</span>(context_parts)
+    contextualized_chunk = <span class="fn">add_context</span>(chunk, context)
+    retriever.<span class="fn">add_document</span>({<span class="str">"content"</span>: contextualized_chunk})</pre>
+
+    <div class="takeaway">
+      <p>Contextual retrieval is most valuable when documents have complex internal relationships — chunks that reference concepts defined elsewhere, technical reports, or academic papers where section ordering carries meaning.</p>
     </div>
   </section>
 

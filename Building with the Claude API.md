@@ -592,9 +592,9 @@ The batch tool pattern is an effective way to encourage Claude to think about op
 
 ## Workflows and Agents
 
-**Workflows**, a series of calls to Claude meant to solve a specific problem through a predetermined series of steps.
+**Workflows** are a series of calls to Claude meant to solve a specific problem through a predetermined series of steps.
 
-**Agents**, a setup where Claude is given a goal and tools, then figures out how to complete the goal.
+**Agents** are a setup where Claude is given a goal and tools, then figures out how to complete the goal.
 
 ### Real-World Workflow Examples
 
@@ -609,7 +609,7 @@ The Evaluator-Optimizer Pattern
 
 #### 2. Users upload images of parts and get recommendations for the best material to use
 
-Parallelization to Aggregating the Results
+The Parallelization Pattern
 
 * Split a single complex task into multiple specialized sub-tasks
   * One request analyzes suitability for metal
@@ -640,10 +640,12 @@ This approach becomes especially valuable when dealing with complex tasks or whe
 
 Routing workflow
 
-* Categorization : Send the user's topic to Claude with a categorization prompt asking it to classify the content type.
-* Specialized Processing : Based on Claude's categorization, use the appropriate specialized pipeline. Each pipeline has its own workflow, prompts, or tools to generate the actual content.
+* Categorization: Send the user's topic to Claude with a categorization prompt asking it to classify the content type.
+* Specialized Processing: Based on Claude's categorization, use the appropriate specialized pipeline. Each pipeline has its own workflow, prompts, or tools to generate the actual content.
 
 ### Provide Reasonably Abstract Tools
+
+When designing tools for agents, aim for tools that are broad enough to be reusable across different tasks, but specific enough that Claude can reliably understand what each one does. Tools that are too granular force Claude to chain many small steps together; tools that are too broad become unpredictable. The list below represents a well-balanced set for a general-purpose coding agent:
 
 * bash - Run commands
 * glob - Find files
@@ -665,7 +667,7 @@ Routing workflow
 
 #### 2. Create and post a video on "Python programming"
 
-System Prompts for Inspection
+Agent Verification and Inspection
 
 * Agent can generate a sample image, show it to the user for approval
 * Proceed with video creation
@@ -680,7 +682,7 @@ Every action an agent takes should be followed by some form of verification or i
 
 ### Choosing the Right Approach
 
-> *Workflows > Agents*
+**Prefer Workflows over Agents.**
 
 While agents are really interesting from a technical perspective, remember that your primary goal as an engineer is to solve problems reliably. Users probably don't care that you've built a fancy agent - they want a product that works 100% of the time.
 
@@ -694,7 +696,7 @@ Model Context Protocol (MCP) is a communication layer that provides Claude with 
 
 * Who Creates MCP Servers
   * Anyone can create an MCP Server implementation. Often, service providers themselves will create official MCP implementations. For example, Github might release their own official MCP Server with tools for their massive services.
-  * You do not have to create an incredible number of tool schemas and functions like repositories, pull requests, issues, projects, and much more.
+  * With a pre-built MCP server, you don't have to manually write tool schemas for every capability — tools covering repositories, pull requests, issues, and more are already defined for you.
 
 * How is using an MCP Server different from calling a service's API directly?
   * MCP Servers provide **tool schemas** and **functions** already defined for you. If you call an API directly, you'll be writing those tool definitions yourself. MCP saves you that implementation work.
@@ -711,7 +713,7 @@ Model Context Protocol (MCP) is a communication layer that provides Claude with 
 
 ### MCP Clients
 
-The MCP client serves as the communication bridge between your server and MCP servers.
+The MCP client serves as the communication bridge between your application and external MCP servers.
 
 The most common setup runs both the MCP client and server on the same machine, where they communicate through standard input/output.
 
@@ -930,3 +932,439 @@ Use prompts for workflows that users should be able to trigger on demand. These 
 * Need to extend Claude's capabilities? Use tools
 * Need data for your app's UI or context? Use resources
 * Want to offer predefined workflows to users? Use prompts
+
+---
+
+## Retrieval Augmented Generation
+
+Large language models like Claude are trained on data up to a certain point in time and have no access to your private documents or real-time information. Retrieval-Augmented Generation (RAG) solves this by dynamically fetching relevant information from your own data sources and injecting it into the prompt before Claude generates a response. Instead of retraining the model, you bring the knowledge to it at query time.
+
+A typical RAG system has three core components:
+
+* Document preprocessing and chunking
+* A search mechanism to find relevant chunks
+* Intelligent selection of which chunks to include in prompts
+
+### Text chunking strategies
+
+* Chunk by a set number of characters
+
+```python
+def chunk_by_char(text, chunk_size=150, chunk_overlap=20):
+    chunks = []
+    start_idx = 0
+
+    while start_idx < len(text):
+        end_idx = min(start_idx + chunk_size, len(text))
+
+        chunk_text = text[start_idx:end_idx]
+        chunks.append(chunk_text)
+
+        start_idx = (
+            end_idx - chunk_overlap if end_idx < len(text) else len(text)
+        )
+
+    return chunks
+```
+
+* Chunk by sentence
+
+```python
+import re
+
+
+def chunk_by_sentence(text, max_sentences_per_chunk=5, overlap_sentences=1):
+    sentences = re.split(r"(?<=[.!?])\s+", text)
+
+    chunks = []
+    start_idx = 0
+
+    while start_idx < len(sentences):
+        end_idx = min(start_idx + max_sentences_per_chunk, len(sentences))
+
+        current_chunk = sentences[start_idx:end_idx]
+        chunks.append(" ".join(current_chunk))
+
+        start_idx += max_sentences_per_chunk - overlap_sentences
+
+        if start_idx < 0:
+            start_idx = 0
+
+    return chunks
+```
+
+* Chunk by section
+
+```python
+def chunk_by_section(document_text):
+    pattern = r"\n## "
+    return re.split(pattern, document_text)
+```
+
+Remember that chunking is often an iterative process. Start with a simple approach, test it with your specific documents and use cases, then refine based on the results. The "best" chunking strategy is the one that works reliably for your particular data and requirements.
+
+* Consistent document structure: Use structure-based chunking for the cleanest results
+* Mixed document types: Sentence-based chunking often works well
+* Code or technical content: Chunk by function or class boundaries when possible; character-based is a last resort as it can split code mid-function
+* Unknown document formats: Character-based chunking is your safest bet
+
+### Text embeddings | Semantic Search
+
+* **Unlike traditional keyword-based search, semantic search uses text embeddings to understand the actual meaning of both the user's question and each text chunk. This allows the system to find conceptually related content even when the exact words don't match.**
+
+* Embedding Generation
+
+```python
+import voyageai
+
+vo = voyageai.Client()
+
+def generate_embedding(text):
+    response = vo.embed([text], model="voyage-3")
+    return response.embeddings[0]
+```
+
+* You feed text into an embedding model
+* The model outputs a long list of numbers (the embedding)
+* The individual dimension values are not constrained to a fixed range — it is the **cosine similarity** computed between two unit-normalized embeddings that falls between -1 and +1
+* These numbers collectively represent different qualities or features of the input text
+
+Embeddings are incredibly powerful because they capture semantic meaning in a way that allows for mathematical comparison between different pieces of text.
+
+### RAG pipeline step by step in a real implementation
+
+#### Step 1: Chunk Your Source Text
+
+For this example, we'll use two simple text sections:
+
+* Section 1: Medical Research - "This year saw significant strides in our understanding of XDR-47, a 'bug' we have not seen before."
+* Section 2: Software Engineering - "This division dedicated significant effort to studying various infection vectors in our distributed systems"
+
+#### Step 2: Generate embeddings for each chunk
+
+To make this easier to understand, let's imagine we have a perfect embedding model that always returns exactly two numbers, and we know what each number represents:
+
+* First number: How much the text talks about medicine
+* Second number: How much the text talks about software engineering
+
+So our medical research section gets [0.97, 0.34] - very medical, somewhat software-related due to the word "bug". The software engineering section gets [0.30, 0.97] - very software-focused, but "infection vectors" has medical connotations.
+
+* Normalization
+
+Before storing these embeddings, they go through a normalization process that scales each vector to have a magnitude of 1.0. This is typically handled automatically by your embedding API, but it's important to understand it happens.
+
+After normalization, our embeddings become [0.944, 0.331] and [0.295, 0.955]. We can visualize these on a unit circle where both points lie exactly on the circle's edge.
+
+#### Step 3: Create a vector store and add each embedding to it
+
+The normalized embeddings get stored in a vector database - a specialized database optimized for storing, comparing, and searching through long lists of numbers like our embeddings.
+
+#### Step 4: Process User Query and Build the Final Prompt
+
+When a user asks a question like "I'm curious about the company. In particular, what did the software engineering dept do this year?", **we run their query through the same embedding model**.
+
+This query gets embedded as [0.1, 0.89] - low medical score, high software engineering score. After normalization, it becomes [0.112, 0.993].
+
+Now we ask the vector database: "Find the stored embedding that's closest to this user query embedding." The database returns the software engineering section because it's the most similar.
+
+* How does the database determine "closest"?
+  * Cosine Similarity - The vector database calculates the cosine of the angle between vectors to measure similarity. This gives us a number between -1 and 1:
+    * 1.0 = vectors point in exactly the same direction (very similar)
+    * 0.0 = vectors are perpendicular (unrelated)
+    * -1.0 = vectors point in opposite directions (very different)
+
+* In our example:
+  * User query vs Software Engineering: cosine similarity = 0.983 (very similar!)
+  * User query vs Medical Research: cosine similarity = 0.434 (less similar)
+
+* Cosine Distance
+  * You'll often see "cosine distance" in vector database documentation. This is simply 1 - cosine similarity, which flips the scale so that smaller numbers mean more similar:
+    * 0.0 = very similar
+    * 1.0 = perpendicular
+    * 2.0 = completely opposite
+
+Finally, we take the user's question and the most relevant text chunk (software engineering section) and combine them into a prompt for Claude:
+
+```bash
+"Answer the user's question about the company annual report."
+
+<user_question>
+What did the software engineering department do this year?
+</user_question>
+
+<report>
+## Section 2: Software Engineering
+This division dedicated significant effort to studying various infection vectors in our distributed systems
+</report>
+```
+
+This process happens automatically every time a user submits a query, **allowing Claude to answer questions based on your specific documents rather than just its general training knowledge**.
+
+### A Deep Dive into Implementation Strategies
+
+#### Hybrid Search Strategy
+
+BM25 (Best Match 25) is a popular algorithm for lexical search in RAG pipelines.
+
+This hybrid approach gives you the best of both worlds - the contextual understanding of semantic search combined with the precision of exact term matching from lexical search.
+
+#### Retriever
+
+Both search systems use similar APIs, making it straightforward to query both in parallel and combine their results into a single, more comprehensive result set.
+
+This consistency makes it straightforward to wrap them in a single **Retriever** class.
+
+Vector search returns cosine similarity scores, while BM25 returns relevance scores - you can't simply combine these numbers directly. Instead, we use a technique called **Reciprocal Rank Fusion (RRF)**. This method focuses on the rank position of results rather than their raw scores. The merge logic tracks document ranks across all search results, calculates RRF scores, and returns the top-k documents sorted by their combined scores.
+
+```python
+# Retriever implementation
+
+from typing import Any, List, Dict, Tuple, Protocol, Callable, Optional
+import random
+import string
+
+
+class SearchIndex(Protocol):
+    def add_document(self, document: Dict[str, Any]) -> None: ...
+
+    # Added the 'add_documents' method to avoid rate limiting errors from VoyageAI
+    def add_documents(self, documents: List[Dict[str, Any]]) -> None: ...
+
+    def search(
+        self, query: Any, k: int = 1
+    ) -> List[Tuple[Dict[str, Any], float]]: ...
+
+
+class Retriever:
+    def __init__(
+        self,
+        *indexes: SearchIndex,
+        reranker_fn: Optional[
+            Callable[[List[Dict[str, Any]], str, int], List[str]]
+        ] = None,
+    ):
+        if len(indexes) == 0:
+            raise ValueError("At least one index must be provided")
+        self._indexes = list(indexes)
+        self._reranker_fn = reranker_fn
+
+    def add_document(self, document: Dict[str, Any]):
+        if "id" not in document:
+            document["id"] = "".join(
+                random.choices(string.ascii_letters + string.digits, k=4)
+            )
+
+        for index in self._indexes:
+            index.add_document(document)
+
+    # Added the 'add_documents' method to avoid rate limiting errors from VoyageAI
+    def add_documents(self, documents: List[Dict[str, Any]]):
+        for index in self._indexes:
+            index.add_documents(documents)
+
+    def search(
+        self, query_text: str, k: int = 1, k_rrf: int = 60
+    ) -> List[Tuple[Dict[str, Any], float]]:
+        if not isinstance(query_text, str):
+            raise TypeError("Query text must be a string.")
+        if k <= 0:
+            raise ValueError("k must be a positive integer.")
+        if k_rrf < 0:
+            raise ValueError("k_rrf must be non-negative.")
+
+        all_results = [
+            index.search(query_text, k=k * 5) for index in self._indexes
+        ]
+
+        doc_ranks = {}
+        for idx, results in enumerate(all_results):
+            for rank, (doc, _) in enumerate(results):
+                doc_id = id(doc)
+                if doc_id not in doc_ranks:
+                    doc_ranks[doc_id] = {
+                        "doc_obj": doc,
+                        "ranks": [float("inf")] * len(self._indexes),
+                    }
+                doc_ranks[doc_id]["ranks"][idx] = rank + 1
+
+        def calc_rrf_score(ranks: List[float]) -> float:
+            return sum(1.0 / (k_rrf + r) for r in ranks if r != float("inf"))
+
+        scored_docs: List[Tuple[Dict[str, Any], float]] = [
+            (ranks["doc_obj"], calc_rrf_score(ranks["ranks"]))
+            for ranks in doc_ranks.values()
+        ]
+
+        filtered_docs = [
+            (doc, score) for doc, score in scored_docs if score > 0
+        ]
+        filtered_docs.sort(key=lambda x: x[1], reverse=True)
+
+        result = filtered_docs[:k]
+
+        if self._reranker_fn is not None:
+            docs_only = [doc for doc, _ in result]
+
+            for doc in docs_only:
+                if "id" not in doc:
+                    doc["id"] = "".join(
+                        random.choices(
+                            string.ascii_letters + string.digits, k=4
+                        )
+                    )
+
+            doc_lookup = {doc["id"]: doc for doc in docs_only}
+            reranked_ids = self._reranker_fn(docs_only, query_text, k)
+
+            new_result = []
+            original_scores = {id(doc): score for doc, score in result}
+
+            for doc_id in reranked_ids:
+                if doc_id in doc_lookup:
+                    doc = doc_lookup[doc_id]
+                    score = original_scores.get(id(doc), 0.0)
+                    new_result.append((doc, score))
+
+            result = new_result
+
+        return result
+```
+
+#### Reranking results
+
+Re-ranking adds an extra step after your hybrid search process. Instead of just returning the merged results from your vector and BM25 indexes, you pass those results through an LLM for intelligent reordering.
+
+* Run your existing hybrid search (vector + BM25)
+* Merge the results as before
+* Send the merged results to Claude with a re-ranking prompt
+* Get back a reordered list of the most relevant documents
+  * If you asked Claude to return the complete text of each relevant document, you'd waste time waiting for it to copy large amounts of text. Instead, assign each text chunk a unique ID ahead of time, then ask Claude to return just those IDs in the preferred order. This makes the re-ranking process much faster while still giving you the reordered results you need.
+
+```python
+# Reranker function
+def reranker_fn(docs, query_text, k):
+    joined_docs = "\n".join(
+        [
+            f"""
+        <document>
+        <document_id>{doc["id"]}</document_id>
+        <document_content>{doc["content"]}</document_content>
+        </document>
+        """
+            for doc in docs
+        ]
+    )
+
+    prompt = f"""
+    You are about to be given a set of documents, along with an id of each.
+    Your task is to select and sort the {k} most relevant documents to answer the user's question.
+
+    Here is the user's question:
+    <question>
+    {query_text}
+    </question>
+    
+    Here are the documents to select from:
+    <documents>
+    {joined_docs}
+    </documents>
+
+    Respond in the following format:
+    ```json
+    {{
+        "document_ids": str[] # List document ids, {k} elements long, sorted in order of decreasing relevance to the user's query. The most relevant documents should be listed first.
+    }}
+    ```
+    """
+
+    messages = []
+    add_user_message(messages, prompt)
+    add_assistant_message(messages, "```json")
+
+    result = chat(messages, stop_sequences=["```"])
+
+    # Note: updated to use 'text_from_message' helper fn
+    return json.loads(text_from_message(result))["document_ids"]
+    
+```
+
+You can integrate this into your retriever by passing the re-ranker function as a parameter:
+
+```python
+retriever = Retriever(bm25_index, vector_index, reranker_fn=reranker_fn)
+```
+
+#### Trade-offs
+
+* Increased latency: You now need to wait for an additional LLM call to complete
+* Improved accuracy: The LLM can understand context and intent better than pure similarity scores
+* Cost considerations: Each search now requires an LLM API call
+
+#### Contextual retrieval
+
+When you split a document into chunks, each chunk loses its connection to the broader document context.
+
+* Take each individual chunk and the original source document
+* Send both to Claude with a specific prompt asking it to add context
+* Claude generates a short snippet that "situates" the chunk within the larger document
+* Combine this context with the original chunk to create a "contextualized chunk"
+* Use the contextualized chunk in your vector and BM25 indexes
+
+```python
+def add_context(text_chunk, source_text):
+    prompt = f"""
+    Write a short and succinct snippet of text to situate this chunk within the 
+    overall source document for the purposes of improving search retrieval of the chunk. 
+
+    Here is the original source document:
+    <document> 
+    {source_text}
+    </document> 
+
+    Here is the chunk we want to situate within the whole document:
+    <chunk> 
+    {text_chunk}
+    </chunk>
+    
+    Answer only with the succinct context and nothing else. 
+    """
+
+    messages = []
+
+    add_user_message(messages, prompt)
+    result = chat(messages)
+
+    # Note: updated to use 'text_from_message' helper fn
+    return text_from_message(result) + "\n" + text_chunk
+```
+
+For large documents, you can implement a strategy that selects relevant context chunks:
+
+
+```python
+# Add context to each chunk, then add to the retriever
+num_start_chunks = 2
+num_prev_chunks = 2
+
+for i, chunk in enumerate(chunks):
+    context_parts = []
+    
+    # Initial set of chunks from the start of the doc
+    context_parts.extend(chunks[: min(num_start_chunks, len(chunks))])
+    
+    # Additional chunks ahead of the current chunk we're contextualizing
+    start_idx = max(0, i - num_prev_chunks)
+    context_parts.extend(chunks[start_idx:i])
+    
+    context = "\n".join(context_parts)
+    
+    contextualized_chunk = add_context(chunk, context)
+    retriever.add_document({"content": contextualized_chunk})
+```
+
+This technique is most valuable when:
+
+* Your documents have complex internal relationships between sections
+* Chunks reference concepts defined elsewhere in the document
+* Understanding the document structure is important for accurate retrieval
+* You're working with technical documents, reports, or academic papers
