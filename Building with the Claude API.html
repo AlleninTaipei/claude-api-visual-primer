@@ -1008,6 +1008,31 @@
     .wa-callout strong { color: #68d391; }
     .wa-callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
 
+    .wa-tools-grid {
+      display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0;
+    }
+    .wa-tool-chip {
+      display: flex; align-items: center; gap: 8px;
+      background: #1a202c; border: 1px solid #2d3748; border-radius: 8px;
+      padding: 7px 12px; font-size: 0.78rem;
+    }
+    .wa-tool-chip code { color: #f6ad55; font-weight: 600; font-size: 0.78rem; }
+    .wa-tool-chip span { color: #718096; }
+
+    .wa-agent-examples { display: flex; flex-direction: column; gap: 14px; margin: 16px 0; }
+    .wa-agent-card {
+      background: #1a202c; border: 1px solid #2d3748; border-left: 3px solid #ed8936;
+      border-radius: 8px; padding: 16px 18px;
+    }
+    .wa-agent-title {
+      font-size: 0.88rem; font-weight: 700; color: #f6ad55; margin-bottom: 10px;
+    }
+    .wa-agent-note {
+      margin-top: 12px; padding: 8px 12px;
+      background: #0d1e0d; border: 1px solid #276749; border-radius: 6px;
+      font-size: 0.78rem; color: #68d391; line-height: 1.5;
+    }
+
     /* ══════════════════════════════════
        MCP
     ══════════════════════════════════ */
@@ -1594,10 +1619,16 @@ messages = []
     <span class="fn">print</span>(reply)</pre>
 
     <h3>System Prompts</h3>
-    <p>A system prompt lets you define Claude's persona, tone, and constraints before any user message. It travels as a top-level <code style="color:#68d391">system</code> parameter, separate from the messages list.</p>
+    <p>A system prompt lets you define Claude's persona, tone, and constraints before any user message. It travels as a top-level <code style="color:#68d391">system</code> parameter, separate from the messages list — and is applied to every turn in the conversation.</p>
     <div class="info-box">
-      <div class="tag">SYSTEM PROMPT</div>
-      <p>Use system prompts to set the role, output format, language, or any standing instructions that should apply to every turn in the conversation.</p>
+      <div class="tag">WHAT TO PUT IN A SYSTEM PROMPT</div>
+      <ul class="rag-list" style="margin-bottom:0">
+        <li><strong style="color:#e2e8f0">Role &amp; persona</strong> — "You are a concise technical assistant"</li>
+        <li><strong style="color:#e2e8f0">Output format</strong> — "Reply in plain text only" / "Always respond with JSON"</li>
+        <li><strong style="color:#e2e8f0">Language &amp; tone</strong> — "Reply in Traditional Chinese" / "Avoid emojis"</li>
+        <li><strong style="color:#e2e8f0">Standing rules</strong> — constraints that apply to every single turn</li>
+        <li><strong style="color:#e2e8f0">Background context</strong> — information about the product, user, or domain that Claude always needs</li>
+      </ul>
     </div>
     <pre class="code-block">response = client.messages.<span class="fn">create</span>(
     <span class="key">model</span>=model,
@@ -1605,6 +1636,10 @@ messages = []
     <span class="key">system</span>=<span class="str">"You are a concise technical assistant. Reply in plain text only."</span>,
     <span class="key">messages</span>=messages
 )</pre>
+    <div class="info-box" style="border-color:#276749">
+      <div class="tag" style="background:#276749;color:#c6f6d5">TIP</div>
+      <p>System prompts are <strong>not</strong> part of the messages list — they're cached separately. Anything you put in the system prompt counts toward context but doesn't appear in the conversation history Claude sees. This makes them ideal for standing instructions that shouldn't be repeated in every user turn.</p>
+    </div>
   </section>
 
   <!-- ── 6. Temperature ── -->
@@ -2161,6 +2196,98 @@ messages.<span class="fn">append</span>({<span class="str">"role"</span>: <span 
         <span class="fn">add_user_message</span>(messages, tool_results)
 
     <span class="kw">return</span> messages</pre>
+
+    <h3>Writing Effective Descriptions</h3>
+    <p>The <code style="color:#f6ad55">description</code> field is Claude's primary signal for deciding when — and how — to call your tool. A well-written description saves Claude from guessing.</p>
+    <div class="info-box">
+      <div class="tag">DESCRIPTION BEST PRACTICES</div>
+      <ul class="rag-list" style="margin-bottom:0">
+        <li>Explain what the tool does, when to use it, and what it returns — aim for 3–4 sentences</li>
+        <li>Include concrete examples of when <em>not</em> to call it if the boundary isn't obvious</li>
+        <li>Write detailed descriptions for each argument as well</li>
+        <li>Use a consistent naming pattern like <code style="color:#f6ad55">function_name_schema</code></li>
+        <li>Import and use <code style="color:#f6ad55">ToolParam</code> from the Anthropic library for better type checking</li>
+      </ul>
+    </div>
+
+    <h3>The Easy Way: Let Claude Write Your Schema</h3>
+    <div class="info-box" style="border-color:#553c9a">
+      <div class="tag" style="background:#553c9a;color:#e9d8fd">SHORTCUT</div>
+      <p>Writing JSON schemas by hand is tedious. Claude can do it for you:</p>
+      <ol style="margin:10px 0 0 18px;padding:0;font-size:0.85rem;color:#a0aec0">
+        <li style="margin-bottom:6px">Copy your tool function</li>
+        <li>Ask Claude: <em>"Write a valid JSON schema spec for tool calling for this function. Follow best practices from the Anthropic documentation."</em></li>
+      </ol>
+    </div>
+
+    <h3>Multi-Block Messages &amp; Complete History</h3>
+    <p>After one complete tool-use cycle your <code style="color:#68d391">messages</code> array contains <strong>four entries</strong>. Two of them use complex content-block structures instead of plain strings — this is the part most implementations get wrong.</p>
+    <pre class="code-block">messages = [
+    <span class="cmt"># 1. Original user request — plain string content</span>
+    { <span class="str">"role"</span>: <span class="str">"user"</span>,
+      <span class="str">"content"</span>: <span class="str">"What is the exact time, formatted as HH:MM:SS?"</span> },
+
+    <span class="cmt"># 2. Claude's multi-block response — preserve the ENTIRE content list, never flatten it</span>
+    { <span class="str">"role"</span>: <span class="str">"assistant"</span>,
+      <span class="str">"content"</span>: [
+          { <span class="str">"type"</span>: <span class="str">"text"</span>,
+            <span class="str">"text"</span>: <span class="str">"I can help you find the current time. Let me check."</span> },
+          { <span class="str">"type"</span>: <span class="str">"tool_use"</span>,
+            <span class="str">"id"</span>:    <span class="str">"toolu_01Abc123"</span>,
+            <span class="str">"name"</span>:  <span class="str">"get_current_datetime"</span>,
+            <span class="str">"input"</span>: { <span class="str">"format"</span>: <span class="str">"%H:%M:%S"</span> } }
+      ]},
+
+    <span class="cmt"># 3. Tool result — role is "user"; tool_use_id must exactly match step 2</span>
+    { <span class="str">"role"</span>: <span class="str">"user"</span>,
+      <span class="str">"content"</span>: [
+          { <span class="str">"type"</span>:        <span class="str">"tool_result"</span>,
+            <span class="str">"tool_use_id"</span>: <span class="str">"toolu_01Abc123"</span>,   <span class="cmt"># ← must match id above</span>
+            <span class="str">"content"</span>:     <span class="str">"14:32:07"</span> }
+      ]},
+
+    <span class="cmt"># 4. Claude's final answer — plain text, stop_reason is now "end_turn"</span>
+    { <span class="str">"role"</span>: <span class="str">"assistant"</span>,
+      <span class="str">"content"</span>: <span class="str">"The current time is 14:32:07."</span> },
+]</pre>
+    <div class="info-box">
+      <div class="tag">TWO CRITICAL RULES</div>
+      <ul class="rag-list" style="margin-bottom:0">
+        <li>Store the assistant message with its <strong>complete content list</strong> — never discard the <code style="color:#f6ad55">tool_use</code> blocks or flatten them to text</li>
+        <li>The <code style="color:#f6ad55">tool_use_id</code> in the tool_result must <strong>exactly match</strong> the <code style="color:#f6ad55">id</code> Claude assigned — Claude uses this pairing to correlate results, especially when multiple tools are called in one turn</li>
+      </ul>
+    </div>
+
+    <h3>Handling Multiple Tool Calls</h3>
+    <p>Claude can request multiple tool calls in a single response. Each tool use block gets a unique ID; you must match these IDs when sending back results.</p>
+    <pre class="code-block"><span class="cmt">User: "Set a reminder for my doctor's appointment. It's 177 days after Jan 1st, 2050."
+
+Claude turn 1 (stop_reason: "tool_use"):
+  content[0]: text      → "Let me calculate that date and set the reminder."
+  content[1]: tool_use  → add_duration_to_datetime(base="2050-01-01", days=177)  [id: "toolu_01"]
+  content[2]: tool_use  → set_reminder(title="Doctor's appointment", date=???)   [id: "toolu_02"]
+                                                ↑ Claude may use a placeholder if it needs
+                                                  the first tool's result to fill this in
+
+Your code:
+  → run both tools (in sequence or parallel if independent)
+  → return ONE user message with TWO tool_result blocks, IDs matching "toolu_01" and "toolu_02"
+
+Claude turn 2 (stop_reason: "end_turn"):
+  content[0]: text → "I've set a reminder for your doctor's appointment on June 27, 2050."</span></pre>
+
+    <h3>The Batch Tool Pattern</h3>
+    <p>For workloads where many independent tool calls are needed, the batch tool pattern lets Claude parallelise them in a single turn.</p>
+    <div class="info-box">
+      <div class="tag">HOW IT WORKS</div>
+      <ul class="rag-list" style="margin-bottom:0">
+        <li>Define a batch tool schema that tells Claude it can invoke multiple other tools in parallel</li>
+        <li>Instead of calling tools one at a time, Claude calls the batch tool with a list of invocations</li>
+        <li>Your code processes the list and executes each call</li>
+        <li>Return the combined results back to Claude in one message</li>
+      </ul>
+    </div>
+    <p>The batch tool pattern is an effective way to encourage Claude to identify operations that can be parallelised and execute them more efficiently.</p>
   </section>
 
   <!-- ── 13. Workflows and Agents ── -->
@@ -2295,6 +2422,44 @@ messages.<span class="fn">append</span>({<span class="str">"role"</span>: <span 
             <div class="wa-example-text">Social media video script tool: classify the user's topic (educational / entertainment / promotional) → route to the matching specialized pipeline → each pipeline has its own optimized prompts and tools.</div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <h3>Provide Reasonably Abstract Tools</h3>
+    <p>When designing tools for agents, aim for tools that are broad enough to be reusable across different tasks, but specific enough that Claude can reliably understand what each one does. Tools that are too granular force Claude to chain many small steps; tools that are too broad become unpredictable.</p>
+    <div class="wa-tools-grid">
+      <div class="wa-tool-chip"><code>bash</code><span>Run commands</span></div>
+      <div class="wa-tool-chip"><code>glob</code><span>Find files</span></div>
+      <div class="wa-tool-chip"><code>grep</code><span>Search file contents</span></div>
+      <div class="wa-tool-chip"><code>read</code><span>Read a file</span></div>
+      <div class="wa-tool-chip"><code>write</code><span>Create a file</span></div>
+      <div class="wa-tool-chip"><code>edit</code><span>Edit a file</span></div>
+      <div class="wa-tool-chip"><code>webfetch</code><span>Fetch a URL</span></div>
+      <div class="wa-tool-chip"><code>generate_image</code><span>Images from prompts</span></div>
+      <div class="wa-tool-chip"><code>text_to_speech</code><span>Convert text to audio</span></div>
+      <div class="wa-tool-chip"><code>post_media</code><span>Publish to social media</span></div>
+    </div>
+
+    <h3>Real-World Agent Examples</h3>
+    <div class="wa-agent-examples">
+      <div class="wa-agent-card">
+        <div class="wa-agent-title">① Install Dependencies</div>
+        <ul class="wa-list">
+          <li>Agent reads project files to understand the configuration</li>
+          <li>Uses <code style="color:#f6ad55">bash</code> tool to run the appropriate installation commands</li>
+          <li>Verifies success before reporting back to the user</li>
+        </ul>
+      </div>
+      <div class="wa-agent-card">
+        <div class="wa-agent-title">② Create &amp; Post a Video on "Python Programming"</div>
+        <ul class="wa-list">
+          <li>Agent generates a sample image → shows user for approval before proceeding</li>
+          <li>Uses <code style="color:#f6ad55">bash</code> to run <em>whisper.cpp</em> and generate caption files with timestamps to verify dialog placement</li>
+          <li>Uses FFmpeg to extract screenshots at regular intervals to confirm visual quality</li>
+          <li>Checks file sizes and formats before attempting upload</li>
+          <li>Publishes only after each step is confirmed</li>
+        </ul>
+        <div class="wa-agent-note">Every action an agent takes should be followed by some form of verification or inspection to confirm the desired outcome was achieved. Build environment inspection into your agents to create more reliable, self-correcting systems.</div>
       </div>
     </div>
 
@@ -2540,6 +2705,93 @@ messages.<span class="fn">append</span>({<span class="str">"role"</span>: <span 
         <span class="step-indicator" id="mcpIndicator">Step 1 of 5</span>
       </div>
     </div>
+
+    <h3>Setting Up an MCP Server</h3>
+    <p>The Python MCP SDK's <code style="color:#f6ad55">FastMCP</code> class eliminates boilerplate: type hints provide automatic validation, decorators register tools/resources/prompts, and no manual JSON schema writing is required.</p>
+    <pre class="code-block"><span class="kw">from</span> mcp.server.fastmcp <span class="kw">import</span> FastMCP
+
+mcp = <span class="fn">FastMCP</span>(<span class="str">"DocumentMCP"</span>, <span class="key">log_level</span>=<span class="str">"ERROR"</span>)
+
+<span class="cmt"># TOOL — Claude decides when to call this</span>
+@mcp.<span class="fn">tool</span>(<span class="key">name</span>=<span class="str">"read_doc_contents"</span>,
+          <span class="key">description</span>=<span class="str">"Read the contents of a document and return it as a string."</span>)
+<span class="kw">def</span> <span class="fn">read_document</span>(doc_id: str = Field(<span class="key">description</span>=<span class="str">"Id of the document to read"</span>)) -&gt; str:
+    <span class="kw">if</span> doc_id <span class="kw">not in</span> docs:
+        <span class="kw">raise</span> <span class="fn">ValueError</span>(<span class="str">f"Doc {doc_id} not found"</span>)
+    <span class="kw">return</span> docs[doc_id]
+
+<span class="cmt"># TOOL — edit a document</span>
+@mcp.<span class="fn">tool</span>(<span class="key">name</span>=<span class="str">"edit_document"</span>,
+          <span class="key">description</span>=<span class="str">"Edit a document by replacing a string in its content with new text."</span>)
+<span class="kw">def</span> <span class="fn">edit_document</span>(
+    doc_id: str  = Field(<span class="key">description</span>=<span class="str">"Id of the document to edit"</span>),
+    old_str: str = Field(<span class="key">description</span>=<span class="str">"The text to replace. Must match exactly."</span>),
+    new_str: str = Field(<span class="key">description</span>=<span class="str">"The replacement text."</span>),
+) -&gt; <span class="kw">None</span>:
+    <span class="kw">if</span> doc_id <span class="kw">not in</span> docs:
+        <span class="kw">raise</span> <span class="fn">ValueError</span>(<span class="str">f"Doc {doc_id} not found"</span>)
+    docs[doc_id] = docs[doc_id].<span class="fn">replace</span>(old_str, new_str)
+
+<span class="cmt"># RESOURCE — your app fetches this for UI or context</span>
+@mcp.<span class="fn">resource</span>(<span class="str">"docs://documents"</span>, <span class="key">mime_type</span>=<span class="str">"application/json"</span>)
+<span class="kw">def</span> <span class="fn">list_docs</span>() -&gt; list[str]:
+    <span class="kw">return</span> <span class="fn">list</span>(docs.keys())
+
+<span class="cmt"># PROMPT — triggered by user action (button click / slash command)</span>
+@mcp.<span class="fn">prompt</span>(<span class="key">name</span>=<span class="str">"format"</span>, <span class="key">description</span>=<span class="str">"Rewrite a document in Markdown format."</span>)
+<span class="kw">def</span> <span class="fn">format_document</span>(doc_id: str = Field(<span class="key">description</span>=<span class="str">"Id of the document to format"</span>)):
+    <span class="kw">return</span> [base.<span class="fn">UserMessage</span>(<span class="str">f"Reformat document {doc_id} using Markdown syntax."</span>)]</pre>
+    <div class="info-box">
+      <div class="tag">WHY FastMCP SAVES TIME</div>
+      <ul class="rag-list" style="margin-bottom:0">
+        <li>No manual JSON schema writing — type hints do it automatically</li>
+        <li>Parameter validation happens via <code style="color:#f6ad55">Field</code> descriptions</li>
+        <li>Error handling integrates naturally with Python exceptions</li>
+        <li>Tool registration is automatic through decorators</li>
+      </ul>
+    </div>
+
+    <h3>Implementing an MCP Client</h3>
+    <p>The <strong>MCP Client</strong> wraps the SDK's <code style="color:#f6ad55">ClientSession</code> to provide a clean interface for listing tools, calling tools, and reading resources. The most common setup uses <strong>stdio</strong> — both client and server run on the same machine and communicate through standard input/output.</p>
+    <pre class="code-block"><span class="kw">class</span> <span class="fn">MCPClient</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, command: str, args: list[str], env: Optional[dict] = <span class="kw">None</span>):
+        self._command = command
+        self._args = args
+        self._session: Optional[ClientSession] = <span class="kw">None</span>
+        self._exit_stack = <span class="fn">AsyncExitStack</span>()
+
+    <span class="kw">async def</span> <span class="fn">connect</span>(self):
+        server_params = <span class="fn">StdioServerParameters</span>(<span class="key">command</span>=self._command, <span class="key">args</span>=self._args)
+        stdio_transport = <span class="kw">await</span> self._exit_stack.<span class="fn">enter_async_context</span>(<span class="fn">stdio_client</span>(server_params))
+        _stdio, _write = stdio_transport
+        self._session = <span class="kw">await</span> self._exit_stack.<span class="fn">enter_async_context</span>(
+            <span class="fn">ClientSession</span>(_stdio, _write)
+        )
+        <span class="kw">await</span> self._session.<span class="fn">initialize</span>()
+
+    <span class="kw">async def</span> <span class="fn">list_tools</span>(self) -&gt; list[types.Tool]:
+        result = <span class="kw">await</span> self._session.<span class="fn">list_tools</span>()
+        <span class="kw">return</span> result.tools
+
+    <span class="kw">async def</span> <span class="fn">call_tool</span>(self, tool_name: str, tool_input) -&gt; types.CallToolResult:
+        <span class="kw">return await</span> self._session.<span class="fn">call_tool</span>(tool_name, tool_input)
+
+    <span class="kw">async def</span> <span class="fn">read_resource</span>(self, uri: str) -&gt; Any:
+        result = <span class="kw">await</span> self._session.<span class="fn">read_resource</span>(<span class="fn">AnyUrl</span>(uri))
+        resource = result.contents[<span class="str">0</span>]
+        <span class="kw">if</span> <span class="fn">isinstance</span>(resource, types.TextResourceContents):
+            <span class="kw">if</span> resource.mimeType == <span class="str">"application/json"</span>:
+                <span class="kw">return</span> json.<span class="fn">loads</span>(resource.text)
+            <span class="kw">return</span> resource.text
+
+    <span class="kw">async def</span> <span class="fn">cleanup</span>(self): <span class="kw">await</span> self._exit_stack.<span class="fn">aclose</span>()
+    <span class="kw">async def</span> <span class="fn">__aenter__</span>(self): <span class="kw">await</span> self.<span class="fn">connect</span>(); <span class="kw">return</span> self
+    <span class="kw">async def</span> <span class="fn">__aexit__</span>(self, *_): <span class="kw">await</span> self.<span class="fn">cleanup</span>()
+
+<span class="cmt"># Usage:</span>
+<span class="kw">async with</span> <span class="fn">MCPClient</span>(<span class="str">"python"</span>, [<span class="str">"server.py"</span>]) <span class="kw">as</span> client:
+    tools = <span class="kw">await</span> client.<span class="fn">list_tools</span>()
+    result = <span class="kw">await</span> client.<span class="fn">call_tool</span>(<span class="str">"read_doc_contents"</span>, {<span class="str">"doc_id"</span>: <span class="str">"report_2024"</span>})</pre>
   </section>
 
   <!-- ── 15. Retrieval Augmented Generation ── -->
@@ -2718,7 +2970,12 @@ This division dedicated significant effort to studying various infection vectors
       <p>Vector database docs often show <strong>cosine distance</strong> instead of similarity. It is simply <code style="color:#f6ad55;font-size:0.82rem">1 − cosine similarity</code>, flipping the scale so smaller = more similar: 0.0 (identical), 1.0 (perpendicular), 2.0 (opposite).</p>
     </div>
 
-    <h3>Advanced: Hybrid Search &amp; Reranking</h3>
+    <div class="takeaway" style="background:#0d1117;border-color:#553c9a;margin:28px 0 6px">
+      <div style="font-size:0.6rem;font-weight:700;letter-spacing:0.1em;color:#b794f4;margin-bottom:6px">DEEP DIVE · IMPLEMENTATION STRATEGIES</div>
+      <p style="margin:0;font-size:0.85rem;color:#a0aec0">The sections below go beyond basic RAG and walk through production-grade patterns: hybrid search with BM25 + vector indexes, Reciprocal Rank Fusion, LLM-powered reranking, and contextual retrieval. Together, these techniques form a complete, robust retrieval pipeline.</p>
+    </div>
+
+    <h3>Hybrid Search &amp; Reranking</h3>
     <p>Semantic search alone can miss exact keyword matches. <strong style="color:#e2e8f0">Hybrid search</strong> combines vector (semantic) search with <strong style="color:#e2e8f0">BM25</strong> lexical search to capture the best of both approaches.</p>
     <p>Because vector similarity scores and BM25 relevance scores operate on incompatible scales, results are merged using <strong style="color:#e2e8f0">Reciprocal Rank Fusion (RRF)</strong> — a rank-based technique that focuses on position rather than raw score value.</p>
 
