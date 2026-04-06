@@ -23,11 +23,15 @@ openai_key = os.environ.get("OPENAI_API_KEY")
 anthropic_model = os.environ.get("ANTHROPIC_MODEL", "claude-haiku-4-5")
 google_model = os.environ.get("GOOGLE_MODEL", "gemini-3-flash-preview")
 openai_model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+lmstudio_model = os.environ.get("LMSTUDIO_MODEL", "meta-llama-3-8b-instruct")
+ollama_model = os.environ.get("OLLAMA_MODEL", "gemma3:1b")
 
 claude_client = anthropic.Anthropic(api_key=anthropic_key) if anthropic_key else None
 # New google-genai Client
 gemini_client = genai.Client(api_key=google_key) if google_key else None
 openai_client = OpenAI(api_key=openai_key) if openai_key else None
+lmstudio_client = OpenAI(base_url="http://localhost:1234/v1", api_key="local")
+ollama_client = OpenAI(base_url="http://localhost:11434/v1", api_key="local")
 
 app = Flask(__name__)
 
@@ -85,6 +89,30 @@ def chat():
         reply = {
             "reply":         response.choices[0].message.content or "",
             "provider":      "openai",
+            "input_tokens":  response.usage.prompt_tokens if response.usage else None,
+            "output_tokens": response.usage.completion_tokens if response.usage else None,
+        }
+    elif provider == "lmstudio":
+        response = lmstudio_client.chat.completions.create(
+            model=lmstudio_model,
+            max_tokens=256,
+            messages=[{"role": "user", "content": user_input}],
+        )
+        reply = {
+            "reply":         response.choices[0].message.content or "",
+            "provider":      "lmstudio",
+            "input_tokens":  response.usage.prompt_tokens if response.usage else None,
+            "output_tokens": response.usage.completion_tokens if response.usage else None,
+        }
+    elif provider == "ollama":
+        response = ollama_client.chat.completions.create(
+            model=ollama_model,
+            max_tokens=256,
+            messages=[{"role": "user", "content": user_input}],
+        )
+        reply = {
+            "reply":         response.choices[0].message.content or "",
+            "provider":      "ollama",
             "input_tokens":  response.usage.prompt_tokens if response.usage else None,
             "output_tokens": response.usage.completion_tokens if response.usage else None,
         }

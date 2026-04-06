@@ -17,6 +17,8 @@ PROVIDER = os.environ.get("DEFAULT_PROVIDER", "openai").strip().lower()
 ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-haiku-4-5")
 GOOGLE_MODEL = os.environ.get("GOOGLE_MODEL", "gemini-3-flash-preview")
 OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+LMSTUDIO_MODEL = os.environ.get("LMSTUDIO_MODEL", "meta-llama-3-8b-instruct")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "gemma3:1b")
 
 USER_INPUT = "In one sentence, what is tokenization?"
 
@@ -80,6 +82,58 @@ elif PROVIDER == "openai":
     model_name = OPENAI_MODEL
 
     print(f"Model      : {model_name}")
+    print(f"User Input : {USER_INPUT}\n")
+
+    response = client.chat.completions.create(
+        model=model_name,
+        max_tokens=256,
+        messages=[{"role": "user", "content": USER_INPUT}],
+    )
+
+    generated_text = response.choices[0].message.content or ""
+    prompt_tokens = response.usage.prompt_tokens if response.usage else None
+    output_tokens = response.usage.completion_tokens if response.usage else None
+
+    print("=== Response ===")
+    print(f"Generated Text : {generated_text}\n")
+    print("=== Metadata ===")
+    print(f"Prompt Tokens  : {prompt_tokens}")
+    print(f"Output Tokens  : {output_tokens}")
+
+elif PROVIDER == "lmstudio":
+    client = OpenAI(
+        base_url="http://localhost:1234/v1",
+        api_key="local",  # LM Studio 不驗證，任意值即可
+    )
+    model_name = LMSTUDIO_MODEL
+
+    print(f"Model      : {model_name} (LM Studio local)")
+    print(f"User Input : {USER_INPUT}\n")
+
+    response = client.chat.completions.create(
+        model=model_name,
+        max_tokens=256,
+        messages=[{"role": "user", "content": USER_INPUT}],
+    )
+
+    generated_text = response.choices[0].message.content or ""
+    prompt_tokens = response.usage.prompt_tokens if response.usage else None
+    output_tokens = response.usage.completion_tokens if response.usage else None
+
+    print("=== Response ===")
+    print(f"Generated Text : {generated_text}\n")
+    print("=== Metadata ===")
+    print(f"Prompt Tokens  : {prompt_tokens}")
+    print(f"Output Tokens  : {output_tokens}")
+
+elif PROVIDER == "ollama":
+    client = OpenAI(
+        base_url="http://localhost:11434/v1",
+        api_key="local",
+    )
+    model_name = OLLAMA_MODEL
+
+    print(f"Model      : {model_name} (Ollama local)")
     print(f"User Input : {USER_INPUT}\n")
 
     response = client.chat.completions.create(

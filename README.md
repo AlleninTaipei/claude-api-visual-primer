@@ -60,6 +60,13 @@ DEFAULT_PROVIDER=google
 # ANTHROPIC_MODEL=claude-haiku-4-5
 # GOOGLE_MODEL=gemini-3-flash-preview
 # OPENAI_MODEL=gpt-4o-mini
+
+# Local model providers (no API key required)
+# DEFAULT_PROVIDER=lmstudio
+# LMSTUDIO_MODEL=meta-llama-3-8b-instruct
+
+# DEFAULT_PROVIDER=ollama
+# OLLAMA_MODEL=gemma3:1b
 ```
 
 > `env.local` is listed in `.gitignore` — never commit API keys.
@@ -134,13 +141,13 @@ Output Tokens: 36
 
 ---
 
-## Phase 2 — Multi-Provider (Anthropic + Google + OpenAI)
+## Phase 2 — Multi-Provider (Anthropic + Google + OpenAI + Local)
 
 The goal here is to compare request/response formats across providers and build a server that can route to any of them.
 
 ### Provider comparison: `demo_api.py`
 
-Calls Claude, Gemini, or GPT based on `DEFAULT_PROVIDER` in `env.local`.
+Calls Claude, Gemini, GPT, or a local model based on `DEFAULT_PROVIDER` in `env.local`.
 
 ```bash
 python3 demo_api.py
@@ -159,17 +166,17 @@ A key consequence of the SDK differences above: not all providers are equally po
 
 When app developers move computation to local open-source models (Ollama, LM Studio, vLLM, llama.cpp), the OpenAI API format has become the **de facto standard**. Most local model servers implement an OpenAI-compatible endpoint.
 
-If your app uses the **OpenAI SDK**, switching to a local model often requires only two lines:
+If your app uses the **OpenAI SDK**, switching to a local model requires only changing `base_url`:
 
 ```python
 # Cloud
 client = OpenAI(api_key="sk-...")
 
-# Local — only base_url changes, nothing else in your code
-client = OpenAI(
-    base_url="http://localhost:11434/v1",  # Ollama, LM Studio, vLLM, etc.
-    api_key="local"                        # required by SDK, not validated locally
-)
+# LM Studio (default port 1234)
+client = OpenAI(base_url="http://localhost:1234/v1", api_key="local")
+
+# Ollama (default port 11434)
+client = OpenAI(base_url="http://localhost:11434/v1", api_key="local")
 ```
 
 The `client.chat.completions.create(...)` call and all downstream code remain unchanged.
@@ -179,6 +186,8 @@ The `client.chat.completions.create(...)` call and all downstream code remain un
 | SDK | Local model portability |
 |---|---|
 | OpenAI SDK | Change `base_url` only |
+| LM Studio | `base_url="http://localhost:1234/v1"` |
+| Ollama | `base_url="http://localhost:11434/v1"` |
 | Anthropic SDK | Rewrite required |
 | Google genai SDK | Rewrite required |
 
@@ -192,6 +201,8 @@ Same two-tier pattern as Phase 1, extended to route requests to any provider.
 Client → Your Server → Claude API
          (holds keys) → Gemini API
                       → OpenAI API
+                      → LM Studio (local)
+                      → Ollama (local)
 ```
 
 **Terminal 1 — start the server:**
@@ -206,7 +217,7 @@ python3 server3.py
 python3 client3.py
 ```
 
-The provider is resolved in this order: request param → `DEFAULT_PROVIDER` env var → `"google"`. Valid values: `anthropic`, `google`, `openai`.
+The provider is resolved in this order: request param → `DEFAULT_PROVIDER` env var → `"google"`. Valid values: `anthropic`, `google`, `openai`, `lmstudio`, `ollama`.
 
 ### Discover available models: `list_models.py`
 
