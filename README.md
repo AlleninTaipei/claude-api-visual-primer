@@ -20,6 +20,7 @@ The goal is to make the abstract mechanics of a large language model — tokeniz
 | `client3.py` | Phase 2 client | HTTP client that selects provider via `DEFAULT_PROVIDER` env var |
 | `list_models.py` | Utility | Lists all available Google Gemini models via the genai SDK |
 | `requirements.txt` | Config | Pinned dependency list for all Phase 1 and Phase 2 scripts |
+| `check_api_health.py` | Utility | API keys for three vendors are prepared in ~/.hermes/.env. The Hermes Agent is asked to devise a set of prompts and prepare a script to send the same prompt to each of the three vendors, confirming that all three APIs are still active by receiving responses. |
 
 ---
 
